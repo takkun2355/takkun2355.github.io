@@ -1,11 +1,8 @@
 const header = document.getElementById("header");
 
+/* header show */
 window.addEventListener("scroll", () => {
-    if (window.scrollY > 250) {
-        header.classList.add("show");
-    } else {
-        header.classList.remove("show");
-    }
+    header.classList.toggle("show", window.scrollY > 250);
 });
 
 /* scroll animation */
@@ -23,26 +20,9 @@ const observer = new IntersectionObserver((entries) => {
 
 targets.forEach(el => observer.observe(el));
 
-/* dark mode */
-const themeBtn = document.getElementById("themeBtn");
-
-themeBtn.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    themeBtn.textContent =
-        document.body.classList.contains("dark") ? "☀️" : "🌙";
-});
-
-/* language (簡易) */
-const langBtn = document.getElementById("langBtn");
-
-let isJP = true;
-
-langBtn.addEventListener("click", () => {
-    isJP = !isJP;
-    langBtn.textContent = isJP ? "JA" : "EN";
-});
-
-/* localstorage */
+/* =========================
+   DARK MODE + 保存
+========================= */
 
 const themeBtn = document.getElementById("themeBtn");
 
@@ -52,13 +32,17 @@ function setTheme(isDark) {
     localStorage.setItem("darkMode", isDark);
 }
 
-// 初期読み込み
+// 初期化
 setTheme(localStorage.getItem("darkMode") === "true");
 
 themeBtn.addEventListener("click", () => {
     const isDark = !document.body.classList.contains("dark");
     setTheme(isDark);
 });
+
+/* =========================
+   LANGUAGE + 保存
+========================= */
 
 const langBtn = document.getElementById("langBtn");
 
@@ -75,6 +59,10 @@ langBtn.addEventListener("click", () => {
     isJP = !isJP;
     setLang(isJP);
 });
+
+/* =========================
+   SCROLL RESET
+========================= */
 
 window.addEventListener("load", () => {
     window.scrollTo(0, 0);
