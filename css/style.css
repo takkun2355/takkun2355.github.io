@@ -5,15 +5,13 @@
 }
 
 body {
-    background: #ffffff;
+    background: #fff;
     color: #222;
-    font-family:
-        "Yu Gothic",
-        "Meiryo",
-        sans-serif;
+    font-family: "Yu Gothic", "Meiryo", sans-serif;
     line-height: 1.7;
 }
 
+/* DARK MODE */
 body.dark {
     background: #111;
     color: #eee;
@@ -29,15 +27,24 @@ body.dark .links a {
     color: #eee;
 }
 
+body.dark .tags span {
+    background: #2a2a2a;
+}
+
+body.dark #header {
+    background: rgba(20,20,20,0.9);
+    border-bottom: 1px solid #333;
+}
+
+/* HEADER */
 #header {
     position: fixed;
     top: -80px;
     left: 0;
     width: 100%;
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.95);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #eaeaea;
-    background: rgba(255,255,255,0.95);
     transition: 0.3s;
     z-index: 100;
 }
@@ -50,21 +57,16 @@ body.dark .links a {
     max-width: 900px;
     margin: auto;
     padding: 18px;
-    font-weight: bold;
-    justify-content: space-between;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
 }
 
 .header-avatar {
     width: 38px;
     height: 38px;
-
-    border-radius: 10px; /* ちょい角丸（完全丸なら50%） */
+    border-radius: 10px;
     object-fit: cover;
-
-    border: 1px solid #eaeaea;
 }
 
 .header-controls {
@@ -80,22 +82,12 @@ body.dark .links a {
     cursor: pointer;
 }
 
+/* HERO */
 .hero {
-
-    background:
-    linear-gradient(
-        135deg,
-        #60a5fa,
-        #8b5cf6
-    );
-
+    background: linear-gradient(135deg, #60a5fa, #8b5cf6);
     color: white;
-
     text-align: center;
-
-    padding:
-        140px
-        20px;
+    padding: 140px 20px;
 }
 
 .hero-content {
@@ -105,28 +97,12 @@ body.dark .links a {
     gap: 50px;
 }
 
-@media (max-width: 700px) {
-
-    .hero-content {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .hero-text {
-        text-align: center;
-    }
-
-}
-
 .hero-avatar {
     width: 150px;
     height: 150px;
-
-    border-radius: 18px; /* 角丸（丸にしたければ50%） */
+    border-radius: 18px;
     object-fit: cover;
-
     border: 2px solid rgba(255,255,255,0.5);
-
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
@@ -134,46 +110,33 @@ body.dark .links a {
     text-align: left;
 }
 
-.hero h1 {
-    font-size: 3rem;
+/* MOBILE */
+@media (max-width: 700px) {
+    .hero-content {
+        flex-direction: column;
+    }
+
+    .hero-text {
+        text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
 }
 
-.hero p {
-    margin-top: 10px;
-}
-
+/* CONTAINER */
 .container {
     max-width: 900px;
-
     margin: auto;
-
-    padding:
-        60px
-        20px
-        120px;
+    padding: 60px 20px 120px;
 }
 
-.card {
-
-    background: white;
-
-    border: 1px solid #eaeaea;
-
-    border-radius: 12px;
-
-    padding: 30px;
-
-    margin-bottom: 30px;
-}
-
-.card h2 {
-    margin-bottom: 15px;
-}
-
+/* CARD */
 .card, .project {
     opacity: 0;
     transform: translateY(30px);
-    transition: all 0.6s ease;
+    transition: 0.6s;
 }
 
 .card.show, .project.show {
@@ -181,6 +144,15 @@ body.dark .links a {
     transform: translateY(0);
 }
 
+.card {
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+/* TAGS */
 .tags {
     display: flex;
     flex-wrap: wrap;
@@ -188,24 +160,12 @@ body.dark .links a {
 }
 
 .tags span {
-
     background: #f3f4f6;
-
-    padding:
-        8px
-        14px;
-
+    padding: 8px 14px;
     border-radius: 999px;
 }
 
-.project {
-    margin-bottom: 20px;
-}
-
-.project h3 {
-    margin-bottom: 5px;
-}
-
+/* LINKS */
 .links {
     display: flex;
     flex-direction: column;
@@ -213,36 +173,14 @@ body.dark .links a {
 }
 
 .links a {
-
     text-decoration: none;
-
     color: #222;
-
     background: #f5f5f5;
-
     padding: 15px;
-
     border-radius: 10px;
-
-    transition: 0.2s;
 }
 
-.links a:hover {
-    transform: translateY(-2px);
-}
-
+/* LIST */
 ul {
     padding-left: 20px;
-}
-
-@media (max-width: 700px) {
-
-    .hero h1 {
-        font-size: 2rem;
-    }
-
-    .container {
-        padding: 30px 15px 80px;
-    }
-
 }
