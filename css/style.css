@@ -77,6 +77,19 @@ body {
     gap: 50px;
 }
 
+@media (max-width: 700px) {
+
+    .hero-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .hero-text {
+        text-align: center;
+    }
+
+}
+
 .hero-avatar {
     width: 150px;
     height: 150px;
