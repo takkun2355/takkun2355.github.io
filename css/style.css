@@ -14,6 +14,21 @@ body {
     line-height: 1.7;
 }
 
+body.dark {
+    background: #111;
+    color: #eee;
+}
+
+body.dark .card {
+    background: #1b1b1b;
+    border-color: #333;
+}
+
+body.dark .links a {
+    background: #222;
+    color: #eee;
+}
+
 #header {
     position: fixed;
     top: -80px;
@@ -36,7 +51,7 @@ body {
     margin: auto;
     padding: 18px;
     font-weight: bold;
-
+    justify-content: space-between;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -50,6 +65,19 @@ body {
     object-fit: cover;
 
     border: 1px solid #eaeaea;
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.header-controls button {
+    background: #f3f4f6;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
 .hero {
@@ -140,6 +168,17 @@ body {
 
 .card h2 {
     margin-bottom: 15px;
+}
+
+.card, .project {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease;
+}
+
+.card.show, .project.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .tags {
