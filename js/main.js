@@ -41,3 +41,37 @@ langBtn.addEventListener("click", () => {
     isJP = !isJP;
     langBtn.textContent = isJP ? "JA" : "EN";
 });
+
+/* localstorage */
+
+const themeBtn = document.getElementById("themeBtn");
+
+function setTheme(isDark) {
+    document.body.classList.toggle("dark", isDark);
+    themeBtn.textContent = isDark ? "☀️" : "🌙";
+    localStorage.setItem("darkMode", isDark);
+}
+
+// 初期読み込み
+setTheme(localStorage.getItem("darkMode") === "true");
+
+themeBtn.addEventListener("click", () => {
+    const isDark = !document.body.classList.contains("dark");
+    setTheme(isDark);
+});
+
+const langBtn = document.getElementById("langBtn");
+
+let isJP = localStorage.getItem("lang") !== "en";
+
+function setLang(jp) {
+    langBtn.textContent = jp ? "JA" : "EN";
+    localStorage.setItem("lang", jp ? "jp" : "en");
+}
+
+setLang(isJP);
+
+langBtn.addEventListener("click", () => {
+    isJP = !isJP;
+    setLang(isJP);
+});
