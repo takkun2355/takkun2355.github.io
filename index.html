@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Takkun2355</title>
-
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,13 +11,12 @@
 <header id="header">
     <div class="header-inner">
 
-        <img src="img/icon.png" class="header-avatar" title="ICON">
-
+        <img src="img/icon.png" class="header-avatar" alt="アイコン" title="ICON">
         <span class="logo">Takkun2355</span>
 
         <div class="header-controls">
-            <button id="langBtn">JA</button>
-            <button id="themeBtn">🌙</button>
+            <button id="langBtn" aria-label="言語を切り替え（準備中）">JA</button>
+            <button id="themeBtn" aria-label="ダークモード切り替え">🌙</button>
         </div>
 
     </div>
@@ -27,7 +25,7 @@
 <section class="hero">
     <div class="hero-content">
 
-        <img src="img/icon.png" class="hero-avatar" title="ICON">
+        <img src="img/icon.png" class="hero-avatar" alt="アイコン" title="ICON">
 
         <div class="hero-text">
             <h1>Takkun2355</h1>
@@ -44,11 +42,8 @@
         <h2>プロフィール</h2>
         <p>
             私はunkoman!!（スタレでくそ笑った）<br><br>
-
             主にDiscord BotやPython系ツールを作っています。<br><br>
-
             思いついたものを作るのが好きです。<br><br>
-
             VCにいることもありますが、あまり喋りません。
         </p>
     </section>
@@ -61,15 +56,15 @@
         </p>
     </section>
 
-    <section class="card">
+    <section class="card" id="skills-card">
         <h2>できること</h2>
         <div class="tags">
-            <span>Python</span>
-            <span>JavaScript</span>
-            <span>HTML/CSS</span>
-            <span>Discord Bot</span>
-            <span>Web開発</span>
-            <span>コピペ技術</span>
+            <span data-skill="python">Python</span>
+            <span data-skill="html">HTML/CSS</span>
+            <span data-skill="javascript">JavaScript</span>
+            <span data-skill="discordbot">Discord Bot</span>
+            <span data-skill="web">Web開発</span>
+            <span data-skill="copy">コピペ技術</span>
         </div>
     </section>
 
@@ -97,27 +92,22 @@
 
     <section class="card">
         <h2>プロジェクト</h2>
-
         <div class="project">
             <h3>Manga Viewer Offline</h3>
             <p>オフライン漫画ビューア</p>
         </div>
-
         <div class="project">
             <h3>Memo Ban Bot</h3>
             <p>Discord向けBot</p>
         </div>
-
         <div class="project">
             <h3>Unko Bot</h3>
             <p>身内向けDiscord Bot</p>
         </div>
-
     </section>
 
     <section class="card">
         <h2>リンク</h2>
-
         <div class="links">
             <a href="https://github.com/takkun2355" target="_blank" rel="noopener">GitHub</a>
             <a href="https://osu.ppy.sh/users/37717698" target="_blank" rel="noopener">osu!</a>
@@ -126,12 +116,10 @@
             <a href="https://steamcommunity.com/profiles/76561199782984279/" target="_blank" rel="noopener">Steam</a>
             <a href="https://atcoder.jp/users/Takkun2355?contestType=heuristic" target="_blank" rel="noopener">Takkun2355</a>
         </div>
-
     </section>
 
 </main>
 
 <script src="js/main.js"></script>
-
 </body>
 </html>
