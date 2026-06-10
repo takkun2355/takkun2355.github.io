@@ -2,7 +2,7 @@
     // ---------- 多言語対応 ----------
     const translations = {
         ja: {
-            trans: "ja",
+            trans: "JA",
             alias: "別名: unkoman",
             hero_desc: "Discord Bot・Webツール開発",
             profile_title: "プロフィール",
@@ -26,7 +26,7 @@
             links_title: "リンク"
         },
         en: {
-            trans: "en",
+            trans: "EN",
             alias: "Alias: unkoman",
             hero_desc: "Discord Bot & Web Tool Development",
             profile_title: "Profile",
