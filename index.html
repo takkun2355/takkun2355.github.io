@@ -12,11 +12,12 @@
     <div class="header-inner">
 
         <img src="img/icon.png" class="header-avatar" alt="アイコン" title="ICON">
+
         <span class="logo">Takkun2355</span>
 
         <div class="header-controls">
-            <button id="langBtn" aria-label="言語を切り替え（準備中）">JA</button>
-            <button id="themeBtn" aria-label="ダークモード切り替え">🌙</button>
+            <button id="langBtn" aria-label="言語切り替え">EN</button>
+            <button id="themeBtn" aria-label="ダークモード切替">🌙</button>
         </div>
 
     </div>
@@ -24,23 +25,20 @@
 
 <section class="hero">
     <div class="hero-content">
-
         <img src="img/icon.png" class="hero-avatar" alt="アイコン" title="ICON">
-
         <div class="hero-text">
             <h1>Takkun2355</h1>
-            <p>別名: unkoman</p>
-            <p>Discord Bot・Webツール開発</p>
+            <p data-i18n="alias">別名: unkoman</p>
+            <p data-i18n="hero_desc">Discord Bot・Webツール開発</p>
         </div>
-
     </div>
 </section>
 
 <main class="container">
 
     <section class="card">
-        <h2>プロフィール</h2>
-        <p>
+        <h2 data-i18n="profile_title">プロフィール</h2>
+        <p data-i18n="profile_body">
             私はunkoman!!（スタレでくそ笑った）<br><br>
             主にDiscord BotやPython系ツールを作っています。<br><br>
             思いついたものを作るのが好きです。<br><br>
@@ -49,27 +47,27 @@
     </section>
 
     <section class="card">
-        <h2>活動内容</h2>
-        <p>
+        <h2 data-i18n="activity_title">活動内容</h2>
+        <p data-i18n="activity_body">
             Discord BotやWebツールを個人で開発しています。<br>
             小規模な実験プロジェクトが中心です。
         </p>
     </section>
 
     <section class="card" id="skills-card">
-        <h2>できること</h2>
+        <h2 data-i18n="skills_title">できること</h2>
         <div class="tags">
             <span data-skill="python">Python</span>
             <span data-skill="html">HTML/CSS</span>
             <span data-skill="javascript">JavaScript</span>
             <span data-skill="discordbot">Discord Bot</span>
-            <span data-skill="web">Web開発</span>
-            <span data-skill="copy">コピペ技術</span>
+            <span data-skill="web" data-i18n="web">Web開発</span>
+            <span data-skill="copy" data-i18n="copy">コピペ技術</span>
         </div>
     </section>
 
     <section class="card">
-        <h2>ゲーム</h2>
+        <h2 data-i18n="games_title">ゲーム</h2>
         <ul>
             <li>Minecraft</li>
             <li>osu!</li>
@@ -80,41 +78,56 @@
     </section>
 
     <section class="card">
-        <h2>現在の興味</h2>
+        <h2 data-i18n="interests_title">現在の興味</h2>
         <ul>
-            <li>Discord Bot Cogs</li>
-            <li>AI活用</li>
-            <li>VC</li>
-            <li>VALORANT</li>
-            <li>音楽（ボカロ等）</li>
+            <li data-i18n="interest1">Discord Bot Cogs</li>
+            <li data-i18n="interest2">AI活用</li>
+            <li data-i18n="interest3">VC</li>
+            <li data-i18n="interest4">VALORANT</li>
+            <li data-i18n="interest5">音楽（ボカロ等）</li>
         </ul>
     </section>
 
     <section class="card">
-        <h2>プロジェクト</h2>
+        <h2 data-i18n="projects_title">プロジェクト</h2>
         <div class="project">
-            <h3>Manga Viewer Offline</h3>
-            <p>オフライン漫画ビューア</p>
+            <div class="links">
+                <a href="https://github.com/takkun2355" target="_blank" rel="noopener">
+                    <h3>Manga Viewer Offline</h3>
+                    <p data-i18n="project1_desc">オフライン漫画ビューア</p>
+                </a>
+            </div>
         </div>
+        <br>
         <div class="project">
-            <h3>Memo Ban Bot</h3>
-            <p>Discord向けBot</p>
+            <div class="links">
+                <a href="https://github.com/takkun2355" target="_blank" rel="noopener">
+                    <h3>Memo Ban Bot</h3>
+                    <p data-i18n="project2_desc">Discord向けBot</p>
+                </a>
+            </div>
         </div>
+        <br>
         <div class="project">
-            <h3>Unko Bot</h3>
-            <p>身内向けDiscord Bot</p>
+            <div class="links">
+                <a href="https://github.com/takkun2355" target="_blank" rel="noopener">
+                    <h3>Unko Bot</h3>
+                    <p data-i18n="project3_desc">身内向けDiscord Bot</p>
+                </a>
+            </div>
         </div>
+        <br>
     </section>
 
     <section class="card">
-        <h2>リンク</h2>
+        <h2 data-i18n="links_title">リンク</h2>
         <div class="links">
             <a href="https://github.com/takkun2355" target="_blank" rel="noopener">GitHub</a>
             <a href="https://osu.ppy.sh/users/37717698" target="_blank" rel="noopener">osu!</a>
             <a href="https://tracker.gg/valorant/profile/riot/%E5%9C%B0%E5%85%83%E3%81%8C%E3%83%9B%E3%83%BC%E3%83%A0%E3%82%BF%E3%82%A6%E3%83%B3%23T2355/overview?platform=pc&playlist=swiftplay&season=ce2783e8-44fc-dd48-3da3-33b5ba6c4a22" target="_blank" rel="noopener">VALORANT</a>
             <a href="https://www.xbox.com/ja-JP/play/user/Takkun2355" target="_blank" rel="noopener">Xbox</a>
             <a href="https://steamcommunity.com/profiles/76561199782984279/" target="_blank" rel="noopener">Steam</a>
-            <a href="https://atcoder.jp/users/Takkun2355?contestType=heuristic" target="_blank" rel="noopener">Takkun2355</a>
+            <a href="https://atcoder.jp/users/Takkun2355?contestType=heuristic" target="_blank" rel="noopener">AtCoder</a>
         </div>
     </section>
 
