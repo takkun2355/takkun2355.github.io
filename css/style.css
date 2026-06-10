@@ -11,7 +11,10 @@ body {
     line-height: 1.7;
 }
 
-/* DARK MODE */
+/* =========================
+   DARK MODE
+========================= */
+
 body.dark {
     background: #111;
     color: #eee;
@@ -42,13 +45,17 @@ body.dark .tags span {
     color: #eee;
 }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
+
 #header {
     position: fixed;
     top: -80px;
     left: 0;
     width: 100%;
     background: rgba(255,255,255,0.95);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #eaeaea;
     transition: 0.3s;
@@ -88,7 +95,10 @@ body.dark .tags span {
     cursor: pointer;
 }
 
-/* HERO */
+/* =========================
+   HERO
+========================= */
+
 .hero {
     background: linear-gradient(135deg, #60a5fa, #8b5cf6);
     color: white;
@@ -116,7 +126,10 @@ body.dark .tags span {
     text-align: left;
 }
 
-/* MOBILE */
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 700px) {
     .hero-content {
         flex-direction: column;
@@ -131,14 +144,20 @@ body.dark .tags span {
     }
 }
 
-/* CONTAINER */
+/* =========================
+   CONTAINER
+========================= */
+
 .container {
     max-width: 900px;
     margin: auto;
     padding: 60px 20px 120px;
 }
 
-/* CARD */
+/* =========================
+   CARD / PROJECT
+========================= */
+
 .card, .project {
     opacity: 0;
     transform: translateY(30px);
@@ -158,7 +177,10 @@ body.dark .tags span {
     margin-bottom: 30px;
 }
 
-/* TAGS */
+/* =========================
+   TAGS
+========================= */
+
 .tags {
     display: flex;
     flex-wrap: wrap;
@@ -171,7 +193,10 @@ body.dark .tags span {
     border-radius: 999px;
 }
 
-/* LINKS */
+/* =========================
+   LINKS
+========================= */
+
 .links {
     display: flex;
     flex-direction: column;
@@ -186,7 +211,10 @@ body.dark .tags span {
     border-radius: 10px;
 }
 
-/* LIST */
+/* =========================
+   LIST
+========================= */
+
 ul {
     padding-left: 20px;
 }

@@ -1,17 +1,32 @@
 const header = document.getElementById("header");
 
-/* header show */
+/* =========================
+   HEADER SCROLL
+========================= */
+
+let ticking = false;
+
 window.addEventListener("scroll", () => {
-    header.classList.toggle("show", window.scrollY > 250);
+    if (!ticking) {
+        requestAnimationFrame(() => {
+            header.classList.toggle("show", window.scrollY > 250);
+            ticking = false;
+        });
+        ticking = true;
+    }
 });
 
-/* scroll animation */
+/* =========================
+   SCROLL ANIMATION
+========================= */
+
 const targets = document.querySelectorAll(".card, .project");
 
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             entry.target.classList.add("show");
+            observer.unobserve(entry.target); // 無駄監視カット
         }
     });
 }, {
@@ -29,7 +44,7 @@ const themeBtn = document.getElementById("themeBtn");
 function setTheme(isDark) {
     document.body.classList.toggle("dark", isDark);
     themeBtn.textContent = isDark ? "☀️" : "🌙";
-    localStorage.setItem("darkMode", isDark);
+    localStorage.setItem("darkMode", isDark ? "true" : "false");
 }
 
 // 初期化
@@ -41,7 +56,8 @@ themeBtn.addEventListener("click", () => {
 });
 
 /* =========================
-   LANGUAGE + 保存
+   LANGUAGE（現状維持仕様）
+   ※UI変更禁止なので機能拡張はしない
 ========================= */
 
 const langBtn = document.getElementById("langBtn");
@@ -61,7 +77,7 @@ langBtn.addEventListener("click", () => {
 });
 
 /* =========================
-   SCROLL RESET
+   LOAD RESET
 ========================= */
 
 window.addEventListener("load", () => {
