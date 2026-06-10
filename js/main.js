@@ -1,4 +1,6 @@
 (function() {
+    history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
     // ---------- 多言語対応 ----------
     const translations = {
         ja: {
@@ -115,7 +117,7 @@
             btn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const headerHeight = header.offsetHeight;
-                const targetY = sec.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+                const targetY = sec.getBoundingClientRect().top + window.pageYOffset - headerHeight - 50;
                 window.scrollTo({ top: targetY, behavior: "smooth" });
                 closeMenu();
             });
