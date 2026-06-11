@@ -23,7 +23,7 @@ jobs:
       - name: Run script
         env:
           PAT: ${{ secrets.PAT }}   # シークレットを環境変数に
-        run: node generate-dashboard.js
+        run: node js/generate-dashboard.js
 
       - name: Commit & Push
         run: |
