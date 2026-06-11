@@ -2,8 +2,11 @@ name: Generate Dashboard SVG
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # 毎日0時（UTC）
+    - cron: "0 0 * * *"
   workflow_dispatch:
+
+permissions:          # ここを追加
+  contents: write     # リポジトリ内容の書き込みを許可
 
 jobs:
   build:
@@ -17,12 +20,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies (if any)
-        run: npm install || true   # 今は不要だがエラー回避
-
       - name: Run script
-        env:
-          PAT: ${{ secrets.PAT }}   # シークレットを環境変数に
         run: node js/generate-dashboard.js
 
       - name: Commit & Push
