@@ -1,37 +1,45 @@
-# Takkun2355 Portfolio
+# Takkun2355 Github Pages
 
-## 概要
+## このrepositoryには以下の要素が入っています
+
+- ポートフォリオサイト
+- ダッシュボードSVG
+
+## Takkun2355 Portfolio
+
+### 概要
+
 このリポジトリは個人ポートフォリオサイトです。  
 HTML / CSS / JavaScript を使用した静的サイトで、GitHub Pages上で公開されています。
 
 ---
 
-## 使用技術
+### 使用技術
 
-- HTML5
-- CSS3
-- JavaScript (Vanilla JS)
+- HTML
+- CSS
+- JavaScript
 - GitHub Pages
 
 ---
 
-## 主な機能
+### 主な機能
 
 - レスポンシブ対応（スマホ・PC両対応）
-- スクロールアニメーション（IntersectionObserver使用）
+- スクロールアニメーション
 - ダークモード切替
 - ヘッダー表示アニメーション
 - シンプルなUI構成
 
 ---
 
-## サイトURL
+### サイトURL
 
-https://takkun2355.github.io/takkun2355.github.io/
+[**サイトへアクセス**](https://takkun2355.github.io/takkun2355.github.io/)
 
 ---
 
-## 内容
+### 内容
 
 - プロフィール
 - スキルセット
@@ -41,7 +49,7 @@ https://takkun2355.github.io/takkun2355.github.io/
 
 ---
 
-## 特徴
+### 特徴
 
 小規模ながらUIアニメーションやテーマ切替などを実装した  
-軽量なポートフォリオサイトです。
+軽量なお楽しみポートフォリオサイトです。
