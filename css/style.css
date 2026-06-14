@@ -12,6 +12,8 @@ body {
     font-family: "Yu Gothic", "Meiryo", sans-serif;
     line-height: 1.7;
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    transition: background 0.8s ease, color 0.8s ease;
 }
 
 @keyframes gradientMove {
@@ -20,55 +22,74 @@ body {
     100% {background-position: 0% 50%;}
 }
 
-/* ダークモード */
+/* ==============================
+   ダークモード（アニメーション付き）
+============================== */
 body.dark {
     background: linear-gradient(-45deg, #111, #1a1a1a, #222, #111);
     color: #eee;
+    transition: background 0.8s ease, color 0.8s ease;
 }
 
-body.dark .card,
-body.dark .demo-container {
+body.dark .room {
     background: #1b1b1b;
     border-color: #333;
+    transition: background 0.8s ease, border-color 0.8s ease;
 }
 
 body.dark .links a {
     background: #222;
     color: #eee;
+    transition: background 0.8s ease, color 0.8s ease;
 }
 
 body.dark #header {
     background: rgba(20,20,20,0.95);
     border-bottom: 1px solid #333;
+    transition: background 0.8s ease, border-color 0.8s ease;
 }
 
 body.dark .header-controls button {
     background: #2a2a2a;
     color: #eee;
-}
-
-body.dark .tags span {
-    background: #2a2a2a;
-    color: #eee;
+    transition: background 0.8s ease, color 0.8s ease;
 }
 
 body.dark .menu-btn span {
     background: #eee;
+    transition: background 0.8s ease;
 }
 
-body.dark .demo-container {
-    background: #111;
+body.dark .gallery-item {
+    background: #222;
     color: #eee;
+    transition: background 0.8s ease, color 0.8s ease;
 }
 
-body.dark .code-area,
-body.dark .terminal-area,
-body.dark .preview-area {
-    background: #000;
-    color: #0f0;
+body.dark .tool-output {
+    background: #222;
+    color: #eee;
+    transition: background 0.8s ease, color 0.8s ease;
 }
 
-/* ヘッダー */
+body.dark .room-header:hover {
+    background: #2a2a2a;
+}
+
+body.dark footer {
+    color: #eee;
+    border-color: #333;
+    transition: color 0.8s ease, border-color 0.8s ease;
+}
+
+body.dark .logo {
+    color: #eee;
+    transition: color 0.8s ease;
+}
+
+/* ==============================
+   ヘッダー
+============================== */
 #header {
     position: fixed;
     top: -80px;
@@ -78,7 +99,9 @@ body.dark .preview-area {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid #eaeaea;
-    transition: top 0.3s ease;
+    transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.8s ease,
+                border-color 0.8s ease;
     z-index: 100;
 }
 
@@ -89,18 +112,19 @@ body.dark .preview-area {
 .header-inner {
     max-width: 900px;
     margin: auto;
-    padding: 10px;
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
 }
 
-.header-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    object-fit: cover;
+.logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #222;
+    letter-spacing: 2px;
+    transition: color 0.8s ease;
 }
 
 .header-controls {
@@ -112,12 +136,19 @@ body.dark .preview-area {
 .header-controls button {
     background: #f3f4f6;
     border: none;
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
+    transition: background 0.8s ease, color 0.8s ease;
 }
 
-/* ハンバーガーボタン */
+.header-controls button:hover {
+    background: #e0e7ff;
+}
+
+/* ==============================
+   ハンバーガーメニュー（アニメーション付き）
+============================== */
 .menu-btn {
     position: absolute;
     right: 18px;
@@ -134,21 +165,22 @@ body.dark .preview-area {
 .menu-btn span {
     height: 3px;
     background: #222;
-    transition: 0.3s;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.8s ease;
     border-radius: 2px;
+    transform-origin: center;
 }
 
 .menu-btn.active span:nth-child(1) {
-    transform: rotate(45deg) translateY(9px);
+    transform: rotate(45deg) translate(5px, 5px);
 }
 .menu-btn.active span:nth-child(2) {
     opacity: 0;
+    transform: scaleX(0);
 }
 .menu-btn.active span:nth-child(3) {
-    transform: rotate(-45deg) translateY(-9px);
+    transform: rotate(-45deg) translate(5px, -5px);
 }
 
-/* フルスクリーンメニュー */
 .menu-panel {
     position: fixed;
     top: 0;
@@ -161,214 +193,279 @@ body.dark .preview-area {
     justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: 0.3s;
+    transition: opacity 0.3s ease;
     z-index: 9999;
 }
+
 .menu-panel.open {
     opacity: 1;
     pointer-events: auto;
 }
+
 .menu-inner {
     text-align: center;
 }
+
 .menu-item {
     font-size: 20px;
     padding: 12px;
     cursor: pointer;
     color: white;
     border-bottom: 1px solid rgba(255,255,255,0.1);
+    transition: background 0.3s, transform 0.3s;
+    opacity: 0;
+    transform: translateY(20px);
 }
 
-/* ヒーロー */
-/* ヒーロー（グラデーション自動アニメーション） */
+.menu-panel.open .menu-item {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.menu-panel.open .menu-item:nth-child(1) { transition-delay: 0.05s; }
+.menu-panel.open .menu-item:nth-child(2) { transition-delay: 0.1s; }
+.menu-panel.open .menu-item:nth-child(3) { transition-delay: 0.15s; }
+.menu-panel.open .menu-item:nth-child(4) { transition-delay: 0.2s; }
+
+.menu-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* ==============================
+   ヒーロー（幾何学模様背景）
+============================== */
 .hero {
-    background: linear-gradient(135deg, #60a5fa, #8b5cf6, #a78bfa, #60a5fa);
-    background-size: 300% 300%;
-    animation: heroGradientMove 10s ease infinite;
+    position: relative;
+    background: #0f172a;
     color: white;
     text-align: center;
-    padding: 140px 20px;
+    padding: 160px 20px 120px;
+    overflow: hidden;
 }
 
-/* ヒーロー用のグラデーション移動 */
-@keyframes heroGradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+#geometry-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .hero-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 50px;
+    position: relative;
+    z-index: 1;
 }
 
-.hero-avatar {
-    width: 150px;
-    height: 150px;
-    border-radius: 18px;
-    object-fit: cover;
-    border: 2px solid rgba(255,255,255,0.5);
+.hero h1 {
+    font-size: 3rem;
+    animation: dropIn 0.8s ease;
+}
+
+.hero p {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    opacity: 0.9;
+    animation: dropIn 0.8s ease 0.2s both;
+}
+
+.hero-nav {
+    margin-top: 2rem;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: dropIn 0.8s ease 0.4s both;
+}
+
+.hero-nav-btn {
+    text-decoration: none;
+    color: #fff;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 10px 20px;
+    border-radius: 30px;
+    transition: 0.3s;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.hero-nav-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
-.hero-text {
-    text-align: left;
-}
-
-@media (max-width: 700px) {
-    .hero-content {
-        flex-direction: column;
+@keyframes dropIn {
+    from {
+        opacity: 0;
+        transform: translateY(-40px);
     }
-    .hero-text {
-        text-align: center;
-    }
-    .hero h1 {
-        font-size: 2rem;
-    }
-    .hero {
-        padding: 100px 20px;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* コンテナ */
+/* ==============================
+   コンテナ
+============================== */
 .container {
-    max-width: 900px;
+    max-width: 800px;
     margin: auto;
     padding: 60px 20px 120px;
 }
 
-/* カード・プロジェクトアニメーション */
-.card, .project {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: 0.6s;
-}
-.card.show, .project.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-.card {
+/* ==============================
+   カード（部屋）
+============================== */
+.room {
     background: #fff;
     border: 1px solid #eaeaea;
     border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 30px;
-    overflow: visible; /* デモがはみ出ても切れないように */
+    margin-bottom: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: 0.6s ease, background 0.8s ease, border-color 0.8s ease;
 }
 
-/* タグ（スキル一覧） */
-.tags {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.room.show {
+    opacity: 1;
+    transform: translateY(0);
 }
-.tags span {
-    background: #f3f4f6;
-    padding: 12px 20px;
-    border-radius: 10px;
+
+.room-header {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     cursor: pointer;
-    transition: 0.2s;
     -webkit-user-select: none;
     user-select: none;
-}
-.tags span:hover {
-    background: #e0e7ff;
+    transition: background 0.3s ease;
 }
 
-/* コードデモコンテナ */
-.demo-container {
-    width: 100%;
-    margin-top: 15px;
-    padding: 0;
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    overflow: hidden;
+.room-header:hover {
+    background: #f3f4f6;
+}
+
+.room-header h2 {
+    font-size: 1.3rem;
+}
+
+.room-icon {
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.room.open .room-icon {
+    transform: rotate(45deg);
+}
+
+.room-body {
     max-height: 0;
-    opacity: 0;
-    transition: max-height 0.4s ease, opacity 0.3s, padding 0.3s, margin 0.3s;
-}
-.demo-container.open {
-    max-height: 700px; /* 大きめに */
-    opacity: 1;
-    padding: 15px;
-    margin-top: 15px;
-    overflow-y: auto; /* 内部スクロール */
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding 0.5s ease;
 }
 
-/* タブ */
-.tab-bar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
+.room.open .room-body {
+    max-height: 500px;
+    padding: 0 24px 24px;
 }
-.tab-bar button {
-    padding: 6px 12px;
-    border: none;
-    background: #e5e7eb;
-    border-radius: 6px;
+
+/* ギャラリー */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.gallery-item {
+    background: #f3f4f6;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    font-size: 2rem;
     cursor: pointer;
-}
-.tab-bar button.active {
-    background: #60a5fa;
-    color: white;
+    transition: 0.3s ease, background 0.8s ease, color 0.8s ease;
 }
 
-/* コード表示エリア */
-.code-area {
-    background: #111;
-    color: #0f0;
-    padding: 12px;
-    border-radius: 6px;
-    font-family: monospace;
-    white-space: pre-wrap;
-    margin-bottom: 10px;
-    max-height: 250px;
-    overflow-y: auto;
-}
-
-/* ターミナルエリア */
-.terminal-area {
-    background: #000;
-    color: #0f0;
-    padding: 12px;
-    border-radius: 6px;
-    min-height: 40px;
-    font-family: monospace;
-    max-height: 150px;
-    overflow-y: auto;
-}
-
-/* プレビュー iframe */
-.preview-frame {
-    width: 100%;
-    height: 200px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background: white;
+.gallery-item:hover {
+    transform: scale(1.05);
+    background: #e0e7ff;
 }
 
 /* リンク */
 .links {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
+
 .links a {
     text-decoration: none;
     color: #222;
     background: #f5f5f5;
     padding: 15px;
     border-radius: 10px;
-}
-ul {
-    padding-left: 20px;
+    transition: 0.3s ease, background 0.8s ease, color 0.8s ease;
 }
 
-/* トップへ戻るボール */
+.links a:hover {
+    background: #e0e7ff;
+    transform: translateX(5px);
+}
+
+/* ツール */
+.tool-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.tool-btn {
+    background: #60a5fa;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.tool-btn:hover {
+    background: #3b82f6;
+    transform: translateY(-2px);
+}
+
+.tool-output {
+    min-height: 60px;
+    padding: 16px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    font-family: monospace;
+    text-align: center;
+    font-size: 1.2rem;
+    transition: background 0.8s ease, color 0.8s ease;
+}
+
+/* フッター */
+footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: #222;
+    opacity: 0.6;
+    font-size: 0.9rem;
+    border-top: 1px solid #eaeaea;
+    transition: color 0.8s ease, border-color 0.8s ease;
+}
+
+/* ==============================
+   トップへ戻るボール
+============================== */
 .top-ball {
     position: fixed;
     right: 20px;
@@ -386,18 +483,40 @@ ul {
     backdrop-filter: blur(10px);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
     z-index: 999;
 }
+
 .top-ball.visible {
     opacity: 1;
     visibility: visible;
 }
+
 .top-ball:hover {
     transform: translateY(-5px) scale(1.05);
 }
+
 .top-ball:active {
     transform: scale(0.95);
+}
+
+/* ==============================
+   モバイル
+============================== */
+@media (max-width: 700px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+    .hero-nav {
+        flex-direction: column;
+        align-items: center;
+    }
+    .hero {
+        padding: 120px 20px 100px;
+    }
 }
 
 /* 動きを抑える設定 */
