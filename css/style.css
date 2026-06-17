@@ -14,6 +14,9 @@ body {
     scroll-behavior: smooth;
     overflow-x: hidden;
     transition: background 0.8s ease, color 0.8s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 @keyframes gradientMove {
@@ -23,7 +26,7 @@ body {
 }
 
 /* ==============================
-   ダークモード（アニメーション付き）
+   ダークモード
 ============================== */
 body.dark {
     background: linear-gradient(-45deg, #111, #1a1a1a, #222, #111);
@@ -58,18 +61,6 @@ body.dark .header-controls button {
 body.dark .menu-btn span {
     background: #eee;
     transition: background 0.8s ease;
-}
-
-body.dark .gallery-item {
-    background: #222;
-    color: #eee;
-    transition: background 0.8s ease, color 0.8s ease;
-}
-
-body.dark .tool-output {
-    background: #222;
-    color: #eee;
-    transition: background 0.8s ease, color 0.8s ease;
 }
 
 body.dark .room-header:hover {
@@ -147,7 +138,7 @@ body.dark .logo {
 }
 
 /* ==============================
-   ハンバーガーメニュー（アニメーション付き）
+   ハンバーガーメニュー
 ============================== */
 .menu-btn {
     position: absolute;
@@ -232,14 +223,14 @@ body.dark .logo {
 }
 
 /* ==============================
-   ヒーロー（幾何学模様背景）
+   ヒーロー（波アニメーション部分）
 ============================== */
 .hero {
     position: relative;
     background: #0f172a;
     color: white;
     text-align: center;
-    padding: 160px 20px 120px;
+    padding: 160px 200px 150px;  /* 下部の余白を長くして波が見やすく */
     overflow: hidden;
 }
 
@@ -263,40 +254,6 @@ body.dark .logo {
     animation: dropIn 0.8s ease;
 }
 
-.hero p {
-    margin-top: 1rem;
-    font-size: 1.2rem;
-    opacity: 0.9;
-    animation: dropIn 0.8s ease 0.2s both;
-}
-
-.hero-nav {
-    margin-top: 2rem;
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-    animation: dropIn 0.8s ease 0.4s both;
-}
-
-.hero-nav-btn {
-    text-decoration: none;
-    color: #fff;
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.3);
-    padding: 10px 20px;
-    border-radius: 30px;
-    transition: 0.3s;
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-}
-
-.hero-nav-btn:hover {
-    background: rgba(255,255,255,0.3);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-}
-
 @keyframes dropIn {
     from {
         opacity: 0;
@@ -309,12 +266,13 @@ body.dark .logo {
 }
 
 /* ==============================
-   コンテナ
+   コンテナ（メイン）
 ============================== */
 .container {
     max-width: 800px;
     margin: auto;
     padding: 60px 20px 120px;
+    flex: 1;
 }
 
 /* ==============================
@@ -328,7 +286,7 @@ body.dark .logo {
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(-30px);
     transition: 0.6s ease, background 0.8s ease, border-color 0.8s ease;
 }
 
@@ -356,15 +314,6 @@ body.dark .logo {
     font-size: 1.3rem;
 }
 
-.room-icon {
-    font-size: 1.5rem;
-    transition: transform 0.3s ease;
-}
-
-.room.open .room-icon {
-    transform: rotate(45deg);
-}
-
 .room-body {
     max-height: 0;
     overflow: hidden;
@@ -373,32 +322,23 @@ body.dark .logo {
 
 .room.open .room-body {
     max-height: 500px;
-    padding: 0 24px 24px;
+    padding: 16px 24px 24px;
 }
 
-/* ギャラリー */
-.gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+.room-body p,
+.room-body .links a {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
-.gallery-item {
-    background: #f3f4f6;
-    border-radius: 12px;
-    padding: 40px;
-    text-align: center;
-    font-size: 2rem;
-    cursor: pointer;
-    transition: 0.3s ease, background 0.8s ease, color 0.8s ease;
+.room.open .room-body p,
+.room.open .room-body .links a {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.2s;
 }
 
-.gallery-item:hover {
-    transform: scale(1.05);
-    background: #e0e7ff;
-}
-
-/* リンク */
 .links {
     display: flex;
     flex-direction: column;
@@ -411,45 +351,13 @@ body.dark .logo {
     background: #f5f5f5;
     padding: 15px;
     border-radius: 10px;
-    transition: 0.3s ease, background 0.8s ease, color 0.8s ease;
+    transition: 0.3s ease, background 0.8s ease, color 0.8s ease, opacity 0.4s ease, transform 0.4s ease;
+    display: block;
 }
 
 .links a:hover {
     background: #e0e7ff;
     transform: translateX(5px);
-}
-
-/* ツール */
-.tool-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-}
-
-.tool-btn {
-    background: #60a5fa;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s ease;
-}
-
-.tool-btn:hover {
-    background: #3b82f6;
-    transform: translateY(-2px);
-}
-
-.tool-output {
-    min-height: 60px;
-    padding: 16px;
-    background: #f3f4f6;
-    border-radius: 8px;
-    font-family: monospace;
-    text-align: center;
-    font-size: 1.2rem;
-    transition: background 0.8s ease, color 0.8s ease;
 }
 
 /* フッター */
@@ -464,62 +372,17 @@ footer {
 }
 
 /* ==============================
-   トップへ戻るボール
-============================== */
-.top-ball {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.4);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-    z-index: 999;
-}
-
-.top-ball.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-.top-ball:hover {
-    transform: translateY(-5px) scale(1.05);
-}
-
-.top-ball:active {
-    transform: scale(0.95);
-}
-
-/* ==============================
    モバイル
 ============================== */
 @media (max-width: 700px) {
     .hero h1 {
         font-size: 2rem;
     }
-    .gallery-grid {
-        grid-template-columns: 1fr;
-    }
-    .hero-nav {
-        flex-direction: column;
-        align-items: center;
-    }
     .hero {
-        padding: 120px 20px 100px;
+        padding: 120px 20px 100px;  /* モバイルでも少し長めに */
     }
 }
 
-/* 動きを抑える設定 */
 @media (prefers-reduced-motion: reduce) {
     body {
         animation: none;

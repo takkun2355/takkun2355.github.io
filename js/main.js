@@ -2,28 +2,16 @@
     // ---------- 多言語 ----------
     const translations = {
         ja: {
-            hero_title: "ようこそ",
-            hero_sub: "ここからすべてが始まる",
-            nav_about: "この場所",
-            nav_gallery: "ギャラリー",
-            nav_links: "リンク",
-            nav_tools: "ツール",
+            hero_title: "Takkun2355のホームページ",
             room1_title: "この場所について",
-            room1_body: "ここは案内のためのホームページ。気になる場所をクリックして、好きなところから探検を始めよう。",
-            room2_title: "ギャラリー",
+            room1_body: "ここはTakkun2355のホームページです。<br>ポートフォリオや制作物、リンクなどをまとめています。",
             room3_title: "リンク集",
             room4_title: "ツール"
         },
         en: {
-            hero_title: "Welcome",
-            hero_sub: "Everything starts here",
-            nav_about: "About",
-            nav_gallery: "Gallery",
-            nav_links: "Links",
-            nav_tools: "Tools",
+            hero_title: "Takkun2355's Home Page",
             room1_title: "About This Place",
-            room1_body: "This is the home page for navigation. Click on whatever interests you and start exploring.",
-            room2_title: "Gallery",
+            room1_body: "This is the home page of Takkun2355.<br>Portfolio, works, and links are gathered here.",
             room3_title: "Links",
             room4_title: "Tools"
         }
@@ -57,10 +45,6 @@
         if (!ticking) {
             requestAnimationFrame(() => {
                 header.classList.toggle("show", window.scrollY > 300);
-                const topBall = document.querySelector(".top-ball");
-                if (topBall) {
-                    topBall.classList.toggle("visible", window.scrollY > 50);
-                }
                 ticking = false;
             });
             ticking = true;
@@ -75,12 +59,6 @@
     }
     setTheme(localStorage.getItem("darkMode") === "true");
     themeBtn.addEventListener("click", () => setTheme(!document.body.classList.contains("dark")));
-
-    // ---------- トップボタン ----------
-    const topBtn = document.querySelector(".top-ball");
-    topBtn.addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    });
 
     // ---------- ハンバーガーメニュー ----------
     const menuBtn = document.createElement("div");
@@ -101,7 +79,7 @@
 
     window.buildMenu = function() {
         menuInner.innerHTML = "";
-        getSections().forEach((sec, index) => {
+        getSections().forEach((sec) => {
             const btn = document.createElement("div");
             btn.className = "menu-item";
             btn.textContent = sec.textContent;
@@ -113,7 +91,8 @@
                     room.classList.add("open");
                 }
                 const headerHeight = header.offsetHeight;
-                const targetY = sec.getBoundingClientRect().top + window.pageYOffset - headerHeight - 10;
+                // メニュー移動量を -30px に変更
+                const targetY = sec.getBoundingClientRect().top + window.pageYOffset - headerHeight - 30;
                 window.scrollTo({ top: targetY, behavior: "smooth" });
                 closeMenu();
             });
@@ -154,23 +133,6 @@
         });
     });
 
-    // ---------- ヒーローナビ ----------
-    document.querySelectorAll(".hero-nav-btn").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            e.preventDefault();
-            const targetId = btn.getAttribute("href");
-            const target = document.querySelector(targetId);
-            if (target) {
-                const headerHeight = document.getElementById("header").offsetHeight;
-                const targetY = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 10;
-                window.scrollTo({ top: targetY, behavior: "smooth" });
-                if (target.classList.contains("room")) {
-                    target.classList.add("open");
-                }
-            }
-        });
-    });
-
     // ---------- スクロールアニメーション ----------
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -181,34 +143,6 @@
     }, { threshold: 0.1 });
 
     document.querySelectorAll(".room").forEach(el => observer.observe(el));
-
-    // ---------- ツール ----------
-    let counter = 0;
-    const toolOutput = document.getElementById("tool-output");
-
-    document.querySelectorAll(".tool-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const tool = btn.dataset.tool;
-            if (tool === "counter") {
-                counter++;
-                toolOutput.textContent = `🔢 カウント: ${counter}`;
-            }
-            if (tool === "random") {
-                const num = Math.floor(Math.random() * 100) + 1;
-                toolOutput.textContent = `🎲 ランダム: ${num}`;
-            }
-        });
-    });
-
-    // ---------- ギャラリー ----------
-    document.querySelectorAll(".gallery-item").forEach(item => {
-        item.addEventListener("click", () => {
-            item.style.transform = "scale(1.2) rotate(10deg)";
-            setTimeout(() => {
-                item.style.transform = "";
-            }, 300);
-        });
-    });
 
     // ---------- 海と波紋 ----------
     function initGeometry() {
@@ -231,17 +165,36 @@
         resize();
         window.addEventListener("resize", resize);
 
-        // クリックで複数の波紋を追加
+        // 左クリック：同じ場所に時間差で波紋
         hero.addEventListener("click", (e) => {
             const rect = hero.getBoundingClientRect();
             const cx = e.clientX - rect.left;
             const cy = e.clientY - rect.top;
-
-            // 1回のクリックで5つの波紋を出す
             const count = 5;
             for (let i = 0; i < count; i++) {
-                const offsetX = (Math.random() - 0.5) * 30;
-                const offsetY = (Math.random() - 0.5) * 30;
+                setTimeout(() => {
+                    ripples.push({
+                        x: cx,
+                        y: cy,
+                        radius: 0,
+                        maxRadius: 100 + Math.random() * 60,
+                        life: 0,
+                        maxLife: 2.5 + Math.random() * 1.5
+                    });
+                }, i * 150);
+            }
+        });
+
+        // 右クリック：複数のランダム位置に一度に波紋
+        hero.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            const rect = hero.getBoundingClientRect();
+            const cx = e.clientX - rect.left;
+            const cy = e.clientY - rect.top;
+            const count = 7;
+            for (let i = 0; i < count; i++) {
+                const offsetX = (Math.random() - 0.5) * 60;
+                const offsetY = (Math.random() - 0.5) * 60;
                 ripples.push({
                     x: cx + offsetX,
                     y: cy + offsetY,
@@ -253,7 +206,7 @@
             }
         });
 
-        const waveRows = 6;
+        const waveRows = 10;
         const wavePoints = 40;
 
         function animate() {
@@ -261,10 +214,8 @@
             ctx.clearRect(0, 0, width, height);
 
             const isDark = document.body.classList.contains("dark");
-            // ダーク：灰青 / ライト：薄い青みのある白（背景と同化しない）
             const waveColor = isDark ? "120, 140, 160" : "180, 200, 230";
 
-            // 海の波
             for (let row = 0; row < waveRows; row++) {
                 const baseY = (height / (waveRows + 1)) * (row + 1);
                 const amplitude = 15 + row * 5;
@@ -286,7 +237,6 @@
                 ctx.stroke();
             }
 
-            // 波紋
             ripples = ripples.filter(rip => {
                 rip.life += 0.016;
                 if (rip.life >= rip.maxLife) return false;
@@ -316,4 +266,4 @@
     history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
     applyLanguage(currentLang);
-})();   
+})();
