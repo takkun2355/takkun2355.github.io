@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイピングテスト</title>
+    <link rel="stylesheet" href="css/typing.css">
+</head>
+<body>
+    <!-- 固定ヘッダー -->
+    <header id="header">
+        <div class="header-inner">
+            <a href="#" class="header-logo-link">
+                <svg class="header-avatar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="20" rx="5" />
+                    <path d="M7 7h10M7 12h10M7 17h6" />
+                </svg>
+                <span class="header-title">タイピングテスト</span>
+            </a>
+            <div class="header-controls">
+                <span id="headerUserInfo" class="header-user-info"></span>
+                <button id="helpBtn" title="ヘルプ">❓</button>
+                <button id="themeBtn" title="テーマ切替">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- タイトルヘッダー -->
+        <header class="header">
+            <h1>⌨️ タイピングテスト</h1>
+            <p class="subtitle">速度・正確性・認知負荷の評価</p>
+        </header>
+
+        <!-- 設定パネル -->
+        <section class="panel" id="settingsPanel">
+            <h2 class="panel-title">⚙️ 設定</h2>
+            <div class="settings-grid">
+                <div class="setting-group">
+                    <label for="modeSelect">モード</label>
+                    <select id="modeSelect" title="モード選択">
+                        <option value="normal">通常（15問固定）</option>
+                        <option value="infinite">無限（連続出題＋時間リセット）</option>
+                    </select>
+                </div>
+                <div class="setting-group hidden" id="difficultyGroup">
+                    <label for="difficultySelect">難易度</label>
+                    <select id="difficultySelect" title="難易度選択">
+                        <option value="beginner">入門（10秒）</option>
+                        <option value="basic">初級（7秒）</option>
+                        <option value="intermediate" selected>中級（4秒）</option>
+                        <option value="advanced">準上級（3秒）</option>
+                        <option value="expert">上級（1.5秒）</option>
+                        <option value="master">最上級（0.5秒）</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="typeSelect">問題形式</label>
+                    <select id="typeSelect" title="問題形式選択">
+                        <option value="word">単語</option>
+                        <option value="short">短文</option>
+                        <option value="sentence">文</option>
+                        <option value="long">長文</option>
+                        <option value="random">ランダム</option>
+                    </select>
+                </div>
+            </div>
+            <div class="options-row">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showReading" checked> 読み仮名を表示
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="showRomaji" checked> ローマ字を表示
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="useCharType"> 文字種補正を有効にする
+                </label>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="startBtn">▶ スタート</button>
+                <button class="btn btn-secondary" id="rankingBtn">🏆 ランキング</button>
+            </div>
+        </section>
+
+        <!-- ゲームパネル -->
+        <section class="panel hidden" id="gamePanel">
+            <div class="typing-area">
+                <div class="problem-frame" id="problemFrame">
+                    <div class="lines-container" id="linesContainer">
+                        <div class="line line-display" id="lineDisplay"></div>
+                        <div class="line line-reading" id="lineReading"></div>
+                        <div class="line line-romaji" id="lineRomaji"></div>
+                    </div>
+                </div>
+                <div class="countdown-overlay" id="countdownOverlay">
+                    <div class="countdown-number" id="countdownNumber">3</div>
+                </div>
+                <div class="input-feedback" id="inputFeedback">ここにローマ字を入力してください</div>
+                <input type="text" class="hidden-input" id="hiddenInput" title="タイピング入力エリア" autocomplete="off" autocorrect="off" spellcheck="false">
+                <div class="timer-section">
+                    <div class="timer-bar-wrap hidden" id="timerBarWrap">
+                        <div class="timer-bar-fill" id="timerBarFill"></div>
+                    </div>
+                    <div class="timer-info">
+                        <span class="timer-text" id="timerText"></span>
+                        <span class="speed-indicators" id="speedIndicators"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-card"><div class="stat-value" id="scoreValue">0</div><div class="stat-label">スコア</div></div>
+                <div class="stat-card"><div class="stat-value" id="comboValue">0</div><div class="stat-label">コンボ</div></div>
+                <div class="stat-card"><div class="stat-value" id="accuracyValue">100%</div><div class="stat-label">正確率</div></div>
+                <div class="stat-card"><div class="stat-value" id="progressValue">0/15</div><div class="stat-label">進捗</div></div>
+            </div>
+            <div class="btn-row"><button class="btn btn-secondary btn-sm" id="quitBtn">✕ 中断</button></div>
+        </section>
+
+        <!-- 結果パネル -->
+        <section class="panel hidden" id="resultPanel">
+            <div class="grade-display" id="gradeDisplay">-</div>
+            <div class="result-details">
+                <div class="stat-card highlight"><div class="stat-value" id="resultScore">0</div><div class="stat-label">最終スコア</div></div>
+                <div class="stat-card"><div class="stat-value" id="resultKPS">0.0</div><div class="stat-label">打鍵/秒</div></div>
+                <div class="stat-card"><div class="stat-value" id="resultWPM">0</div><div class="stat-label">WPM</div></div>
+                <div class="stat-card"><div class="stat-value" id="resultAccuracy">100%</div><div class="stat-label">正確率</div></div>
+                <div class="stat-card"><div class="stat-value" id="resultMaxCombo">0</div><div class="stat-label">最大コンボ</div></div>
+                <div class="stat-card"><div class="stat-value" id="resultCharType">-</div><div class="stat-label">文字種補正</div></div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="retryBtn">🔄 リトライ</button>
+                <button class="btn btn-secondary" id="backToSettingsBtn">⚙️ 設定に戻る</button>
+            </div>
+        </section>
+
+        <!-- ランキングパネル -->
+        <section class="panel hidden" id="rankingPanel">
+            <h2 class="panel-title">🏆 ローカルランキング</h2>
+            <div class="ranking-filters">
+                <select id="rankingModeFilter" title="モード絞り込み">
+                    <option value="all">全モード</option>
+                    <option value="normal">通常</option>
+                    <option value="infinite">無限</option>
+                </select>
+                <select id="rankingTypeFilter" title="問題形式絞り込み">
+                    <option value="all">全形式</option>
+                    <option value="word">単語</option>
+                    <option value="short">短文</option>
+                    <option value="sentence">文</option>
+                    <option value="long">長文</option>
+                    <option value="random">ランダム</option>
+                </select>
+                <button class="btn btn-secondary btn-sm" id="clearRankingBtn">🗑 クリア</button>
+            </div>
+            <div class="ranking-table-wrap">
+                <table class="ranking-table" id="rankingTable">
+                    <thead>
+                        <tr>
+                            <th>順位</th>
+                            <th>名前</th>
+                            <th>国</th>
+                            <th>スコア</th>
+                            <th>評価</th>
+                            <th>モード</th>
+                            <th>形式</th>
+                            <th>正確率</th>
+                            <th>WPM</th>
+                            <th>日時</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rankingBody">
+                        <tr><td colspan="10" class="empty-message">データがありません</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="ranking-note">※ グローバルランキングはサーバーが必要なため、現在ローカルのみ対応しています</p>
+            <div class="btn-row"><button class="btn btn-secondary" id="closeRankingBtn">閉じる</button></div>
+        </section>
+
+        <!-- ヘルプパネル -->
+        <section class="panel hidden" id="helpPanel">
+            <h2 class="panel-title">❓ ヘルプ</h2>
+            <div class="help-section">
+                <h3>🎮 遊び方</h3>
+                <ul>
+                    <li>表示された問題文を、ローマ字でタイピングします。</li>
+                    <li>IME（日本語入力）を<strong>オフ</strong>にして、半角英数で直接入力してください。</li>
+                    <li>カウントダウン後、問題の先頭から順にタイピングが始まります。</li>
+                    <li>通常モードでは15問を解答、無限モードでは時間切れまで連続出題されます。</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>⌨️ 句読点・特殊文字の入力</h3>
+                <ul>
+                    <li>「<strong>。</strong>」は <strong>ten</strong> と入力します（ピリオド「.」では入力できません）</li>
+                    <li>「<strong>、</strong>」は <strong>,</strong>（カンマ）</li>
+                    <li>「<strong>！</strong>」は <strong>!</strong></li>
+                    <li>「<strong>？</strong>」は <strong>?</strong></li>
+                    <li>小さい文字（ぁ・ゃ・っ など）は <strong>l</strong> または <strong>x</strong> を前に付けます（例：<strong>la</strong> → ぁ、<strong>lya</strong> → ゃ、<strong>ltu</strong> → っ）</li>
+                    <li>促音「っ」は子音を重ねても入力できます（例：<strong>kka</strong> → っか）</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>📊 文字種補正について</h3>
+                <ul>
+                    <li>チェックボックス「文字種補正を有効にする」が<strong>ON</strong>の場合、問題の文字構成に応じてスコアに補正が掛かります。</li>
+                    <li><strong>ローマ字表示ON</strong>：補正なし（1.0倍）</li>
+                    <li><strong>読み仮名のみ表示</strong>：軽補正（1.15倍）</li>
+                    <li><strong>両方非表示</strong>：高補正（1.5倍）</li>
+                    <li>補正が高いほど、同じ入力でも高スコアを得られます。</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>🧮 スコア計算方法</h3>
+                <ul>
+                    <li><strong>基本加算</strong>：正しい1打鍵ごとに +2点 × コンボ倍率 × 文字種補正</li>
+                    <li><strong>コンボ倍率</strong>：連続正解数に応じて上昇（最大1.5倍、25コンボで到達）</li>
+                    <li><strong>ミス</strong>：-1点、コンボは0にリセット</li>
+                    <li><strong>終了時補正</strong>：入力速度（打鍵/秒）と正確率に応じた倍率を<strong>生スコアに乗算</strong></li>
+                    <li>速度倍率：2.0打鍵/秒で1.0倍、5.0打鍵/秒で1.8倍、6.0打鍵/秒以上で2.2倍</li>
+                    <li>正確率倍率：90%以上で1.0倍、100%で1.3倍</li>
+                    <li>全条件達成最高倍率：<strong>6.435倍</strong></li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h3>🏅 評価の判定</h3>
+                <ul>
+                    <li><strong>補正OFF時</strong>：速度と正確率で評価が決まります（5打/秒＆95%以上でOMG!!）</li>
+                    <li><strong>補正ON時</strong>：最終スコアによって6段階で評価されます</li>
+                    <li>OMG!! / Very Great! / Great! / Good / Soso / Bad... の順に高評価</li>
+                    <li>同じ打鍵でも、正確率が高いほど高評価を得やすくなります。</li>
+                </ul>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="closeHelpBtn">閉じる</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- 初回設定モーダル -->
+    <div class="modal-overlay hidden" id="namePromptOverlay">
+        <div class="modal">
+            <h2>はじめまして！</h2>
+            <p>タイピングテストを始める前に、お名前と国を教えてください。</p>
+            <p class="modal-note">※ 一度設定すると変更できません。</p>
+            <div class="modal-form">
+                <div class="form-group">
+                    <label for="userNameInput">お名前</label>
+                    <input type="text" id="userNameInput" placeholder="名前を入力" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="userCountrySelect">国 / 地域</label>
+                    <select id="userCountrySelect">
+                        <option value="">選択してください</option>
+                        <!-- 国リストはJSで埋め込み -->
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="confirmNameBtn">決定</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+    <script src="js/typing.js"></script>
+</body>
+</html>

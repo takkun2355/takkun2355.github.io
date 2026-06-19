@@ -213,10 +213,18 @@ body.dark .logo {
     transform: translateY(0);
 }
 
-.menu-panel.open .menu-item:nth-child(1) { transition-delay: 0.05s; }
-.menu-panel.open .menu-item:nth-child(2) { transition-delay: 0.1s; }
-.menu-panel.open .menu-item:nth-child(3) { transition-delay: 0.15s; }
-.menu-panel.open .menu-item:nth-child(4) { transition-delay: 0.2s; }
+.menu-panel.open .menu-item:nth-child(1) {
+    transition-delay: 0.05s;
+}
+.menu-panel.open .menu-item:nth-child(2) {
+    transition-delay: 0.1s;
+}
+.menu-panel.open .menu-item:nth-child(3) {
+    transition-delay: 0.15s;
+}
+.menu-panel.open .menu-item:nth-child(4) {
+    transition-delay: 0.2s;
+}
 
 .menu-item:hover {
     background: rgba(255,255,255,0.1);
@@ -230,7 +238,8 @@ body.dark .logo {
     background: #0f172a;
     color: white;
     text-align: center;
-    padding: 160px 200px 150px;  /* 下部の余白を長くして波が見やすく */
+    padding: 160px 200px 150px;
+     /* 下部の余白を長くして波が見やすく */
     overflow: hidden;
 }
 
@@ -258,11 +267,11 @@ body.dark .logo {
     from {
         opacity: 0;
         transform: translateY(-40px);
-    }
+}
     to {
         opacity: 1;
         transform: translateY(0);
-    }
+}
 }
 
 /* ==============================
@@ -377,14 +386,15 @@ footer {
 @media (max-width: 700px) {
     .hero h1 {
         font-size: 2rem;
-    }
+}
     .hero {
-        padding: 120px 20px 100px;  /* モバイルでも少し長めに */
-    }
+        padding: 120px 20px 100px;
+     /* モバイルでも少し長めに */
+}
 }
 
 @media (prefers-reduced-motion: reduce) {
     body {
         animation: none;
-    }
+}
 }

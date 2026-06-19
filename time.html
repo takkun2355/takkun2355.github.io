@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時間ユーティリティ統合ツール</title>
+    <link rel="stylesheet" href="css/time.css">
+</head>
+<body>
+    <header id="header">
+        <div class="header-inner">
+            <a class="header-logo-link" href="index.html">
+                <svg class="header-avatar" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <polyline points="12,6 12,12 16,14" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span class="header-title" data-i18n="app_title">時間ユーティリティ</span>
+            </a>
+            <div class="header-controls">
+                <span class="clock-current" id="currentClock">--:--:--<span class="date-part" id="currentDate"></span></span>
+                <button type="button" id="langBtn" class="header-btn">EN</button>
+                <button type="button" id="themeBtn" class="header-btn">☀️</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard">
+            <!-- タイマー -->
+            <div class="card" id="timerCard">
+                <div class="card-header clickable-maximize">
+                    <div class="card-icon timer">⏳</div>
+                    <div>
+                        <div class="card-title" data-i18n="timer_title">タイマー</div>
+                        <div class="card-subtitle" data-i18n="timer_subtitle">カウントダウン</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="timer-display-wrap">
+                        <svg class="timer-svg" viewBox="0 0 220 220">
+                            <circle class="timer-progress-bg" cx="110" cy="110" r="100"/>
+                            <circle class="timer-progress-fg" id="timerProgressFg" cx="110" cy="110" r="100"
+                            stroke-dasharray="628.32" stroke-dashoffset="0"/>
+                        </svg>
+                        <input type="text" class="timer-time" id="timerDisplay" title="クリックで時間を直接入力" readonly value="00:00:00" maxlength="8">
+                    </div>
+                    <div class="timer-presets" id="timerPresets">
+                        <button type="button" class="preset-btn" data-seconds="60" data-i18n="1min">1分</button>
+                        <button type="button" class="preset-btn" data-seconds="180" data-i18n="3min">3分</button>
+                        <button type="button" class="preset-btn" data-seconds="300" data-i18n="5min">5分</button>
+                        <button type="button" class="preset-btn" data-seconds="600" data-i18n="10min">10分</button>
+                        <button type="button" class="preset-btn" data-seconds="900" data-i18n="15min">15分</button>
+                        <button type="button" class="preset-btn" data-seconds="1800" data-i18n="30min">30分</button>
+                        <button type="button" class="preset-btn" data-seconds="3600" data-i18n="60min">60分</button>
+                    </div>
+                    <div class="timer-actions">
+                        <button type="button" class="btn btn-primary" id="timerStartBtn" data-i18n="start">▶ 開始</button>
+                        <button type="button" class="btn btn-secondary hidden" id="timerPauseBtn" data-i18n="pause">⏸ 一時停止</button>
+                        <button type="button" class="btn btn-secondary" id="timerResetBtn" data-i18n="reset">↺ リセット</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ストップウォッチ -->
+            <div class="card" id="stopwatchCard">
+                <div class="card-header clickable-maximize">
+                    <div class="card-icon stopwatch">⏱</div>
+                    <div>
+                        <div class="card-title" data-i18n="stopwatch_title">ストップウォッチ</div>
+                        <div class="card-subtitle" data-i18n="stopwatch_subtitle">経過時間計測</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="stopwatch-display">
+                        <span id="stopwatchMain">00:00:00</span><span class="stopwatch-millis" id="stopwatchMillis">.00</span>
+                    </div>
+                    <div class="timer-actions">
+                        <button type="button" class="btn btn-stopwatch" id="stopwatchStartBtn" data-i18n="start">▶ 開始</button>
+                        <button type="button" class="btn btn-secondary hidden" id="stopwatchPauseBtn" data-i18n="pause">⏸ 一時停止</button>
+                        <button type="button" class="btn btn-secondary" id="stopwatchLapBtn" disabled data-i18n="lap">🏁 ラップ</button>
+                        <button type="button" class="btn btn-secondary" id="stopwatchResetBtn" data-i18n="reset">↺ リセット</button>
+                    </div>
+                    <div class="lap-list" id="lapList">
+                        <div class="no-laps" data-i18n="no_laps">ラップはまだ記録されていません</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- アラーム -->
+            <div class="card" id="alarmCard">
+                <div class="card-header clickable-maximize">
+                    <div class="card-icon alarm">🔔</div>
+                    <div>
+                        <div class="card-title" data-i18n="alarm_title">アラーム</div>
+                        <div class="card-subtitle" data-i18n="alarm_subtitle">時刻指定通知</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alarm-display">
+                        <div class="alarm-time-control">
+                            <button type="button" class="arrow-btn up" data-target="hour" aria-label="時間を増やす">▲</button>
+                            <span class="alarm-digit" id="alarmHour">07</span>
+                            <button type="button" class="arrow-btn down" data-target="hour" aria-label="時間を減らす">▼</button>
+                        </div>
+                        <span class="alarm-colon">:</span>
+                        <div class="alarm-time-control">
+                            <button type="button" class="arrow-btn up" data-target="minute" aria-label="分を増やす">▲</button>
+                            <span class="alarm-digit" id="alarmMinute">00</span>
+                            <button type="button" class="arrow-btn down" data-target="minute" aria-label="分を減らす">▼</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-enable" id="alarmEnableBtn" data-i18n="alarm_Enable">🔔 アラームを有効にする</button>
+                    <div class="alarm-status" id="alarmStatus" data-i18n="alarm_off">アラームはオフです</div>
+                    <div class="alarm-ringing-actions hidden" id="alarmRingingActions">
+                        <button type="button" class="btn btn-danger" id="alarmStopBtn" data-i18n="stop_alarm">🔇 停止</button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="alarmSnoozeBtn" data-i18n="snooze">💤 5分後に再通知</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 世界時計 -->
+            <div class="card" id="worldClockCard">
+                <div class="card-header clickable-maximize">
+                    <div class="card-icon world">🌐</div>
+                    <div>
+                        <div class="card-title" data-i18n="world_title">世界時計</div>
+                        <div class="card-subtitle" data-i18n="world_subtitle">タイムゾーン</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="world-clock-list" id="worldClockList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div id="modal-content" class="modal-content">
+            <div class="modal-header" id="modalHeader"></div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="js/time.js" defer></script>
+</body>
+</html>

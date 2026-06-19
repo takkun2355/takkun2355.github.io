@@ -192,9 +192,15 @@ body.dark .preview-area {
 
 /* ヒーロー用のグラデーション移動 */
 @keyframes heroGradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+    background-position: 0% 50%;
+}
+    50% {
+    background-position: 100% 50%;
+}
+    100% {
+    background-position: 0% 50%;
+}
 }
 
 .hero-content {
@@ -220,16 +226,16 @@ body.dark .preview-area {
 @media (max-width: 700px) {
     .hero-content {
         flex-direction: column;
-    }
+}
     .hero-text {
         text-align: center;
-    }
+}
     .hero h1 {
         font-size: 2rem;
-    }
+}
     .hero {
         padding: 100px 20px;
-    }
+}
 }
 
 /* コンテナ */
@@ -255,7 +261,8 @@ body.dark .preview-area {
     border-radius: 12px;
     padding: 30px;
     margin-bottom: 30px;
-    overflow: visible; /* デモがはみ出ても切れないように */
+    overflow: visible;
+    /* デモがはみ出ても切れないように */
 }
 
 /* タグ（スキル一覧） */
@@ -291,11 +298,13 @@ body.dark .preview-area {
     transition: max-height 0.4s ease, opacity 0.3s, padding 0.3s, margin 0.3s;
 }
 .demo-container.open {
-    max-height: 700px; /* 大きめに */
+    max-height: 700px;
+    /* 大きめに */
     opacity: 1;
     padding: 15px;
     margin-top: 15px;
-    overflow-y: auto; /* 内部スクロール */
+    overflow-y: auto;
+    /* 内部スクロール */
 }
 
 /* タブ */
@@ -404,5 +413,5 @@ ul {
 @media (prefers-reduced-motion: reduce) {
     body {
         animation: none;
-    }
+}
 }
