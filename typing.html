@@ -10,7 +10,7 @@
     <!-- 固定ヘッダー -->
     <header id="header">
         <div class="header-inner">
-            <a href="#" class="header-logo-link">
+            <a href="index.html" class="header-logo-link">
                 <svg class="header-avatar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="2" y="2" width="20" height="20" rx="5" />
                     <path d="M7 7h10M7 12h10M7 17h6" />
@@ -18,7 +18,9 @@
                 <span class="header-title">タイピングテスト</span>
             </a>
             <div class="header-controls">
-                <span id="headerUserInfo" class="header-user-info"></span>
+                <button id="headerUserInfoBtn" class="header-user-btn" title="表示設定">
+                    <span id="headerUserInfoText">未設定</span>
+                </button>
                 <button id="helpBtn" title="ヘルプ">❓</button>
                 <button id="themeBtn" title="テーマ切替">🌙</button>
             </div>
@@ -26,7 +28,6 @@
     </header>
 
     <div class="app-container">
-        <!-- タイトルヘッダー -->
         <header class="header">
             <h1>⌨️ タイピングテスト</h1>
             <p class="subtitle">速度・正確性・認知負荷の評価</p>
@@ -42,17 +43,17 @@
                         <option value="normal">通常（15問固定）</option>
                         <option value="infinite">無限（連続出題＋時間リセット）</option>
                     </select>
-                </div>
-                <div class="setting-group hidden" id="difficultyGroup">
-                    <label for="difficultySelect">難易度</label>
-                    <select id="difficultySelect" title="難易度選択">
-                        <option value="beginner">入門（10秒）</option>
-                        <option value="basic">初級（7秒）</option>
-                        <option value="intermediate" selected>中級（4秒）</option>
-                        <option value="advanced">準上級（3秒）</option>
-                        <option value="expert">上級（1.5秒）</option>
-                        <option value="master">最上級（0.5秒）</option>
-                    </select>
+                    <div class="setting-group hidden" id="difficultyGroup">
+                        <label for="difficultySelect">難易度</label>
+                        <select id="difficultySelect" title="難易度選択">
+                            <option value="beginner">入門（10秒）</option>
+                            <option value="basic">初級（7秒）</option>
+                            <option value="intermediate" selected>中級（4秒）</option>
+                            <option value="advanced">準上級（3秒）</option>
+                            <option value="expert">上級（1.5秒）</option>
+                            <option value="master">最上級（0.5秒）</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="setting-group">
                     <label for="typeSelect">問題形式</label>
@@ -63,6 +64,13 @@
                         <option value="long">長文</option>
                         <option value="random">ランダム</option>
                     </select>
+                    <div class="setting-group">
+                        <label for="langSelect">問題言語</label>
+                        <select id="langSelect" title="問題言語選択">
+                            <option value="ja">日本語</option>
+                            <option value="en">英語</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="options-row">
@@ -135,7 +143,11 @@
 
         <!-- ランキングパネル -->
         <section class="panel hidden" id="rankingPanel">
-            <h2 class="panel-title">🏆 ローカルランキング</h2>
+            <h2 class="panel-title" id="rankingTitle">🏆 ランキング</h2>
+            <div class="ranking-tabs">
+                <button class="btn btn-secondary btn-sm active" id="rankingTabLocal">ローカル</button>
+                <button class="btn btn-secondary btn-sm" id="rankingTabGlobal">グローバル</button>
+            </div>
             <div class="ranking-filters">
                 <select id="rankingModeFilter" title="モード絞り込み">
                     <option value="all">全モード</option>
@@ -150,6 +162,11 @@
                     <option value="long">長文</option>
                     <option value="random">ランダム</option>
                 </select>
+                <select id="rankingLangFilter" title="言語絞り込み">
+                    <option value="all">全言語</option>
+                    <option value="ja">日本語</option>
+                    <option value="en">英語</option>
+                </select>
                 <button class="btn btn-secondary btn-sm" id="clearRankingBtn">🗑 クリア</button>
             </div>
             <div class="ranking-table-wrap">
@@ -161,6 +178,7 @@
                             <th>国</th>
                             <th>スコア</th>
                             <th>評価</th>
+                            <th>言語</th>
                             <th>モード</th>
                             <th>形式</th>
                             <th>正確率</th>
@@ -169,11 +187,11 @@
                         </tr>
                     </thead>
                     <tbody id="rankingBody">
-                        <tr><td colspan="10" class="empty-message">データがありません</td></tr>
+                        <tr><td colspan="11" class="empty-message">データがありません</td></tr>
                     </tbody>
                 </table>
             </div>
-            <p class="ranking-note">※ グローバルランキングはサーバーが必要なため、現在ローカルのみ対応しています</p>
+            <p class="ranking-note">※ グローバルランキングはFirebase経由で動作しています。</p>
             <div class="btn-row"><button class="btn btn-secondary" id="closeRankingBtn">閉じる</button></div>
         </section>
 
@@ -237,6 +255,23 @@
         </section>
     </div>
 
+    <!-- グローバル表示設定モーダル -->
+    <div class="modal-overlay hidden" id="visibilitySettingsOverlay">
+        <div class="modal">
+            <h2>表示設定</h2>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="globalVisibilityCheck"> グローバルランキングにスコアを表示する
+                </label>
+            </div>
+            <p class="modal-note">オフにすると、あなたのスコアはローカルにのみ保存され、世界中には公開されません。</p>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="saveVisibilityBtn">保存</button>
+                <button class="btn btn-secondary" id="closeVisibilityBtn">閉じる</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 初回設定モーダル -->
     <div class="modal-overlay hidden" id="namePromptOverlay">
         <div class="modal">
@@ -252,8 +287,12 @@
                     <label for="userCountrySelect">国 / 地域</label>
                     <select id="userCountrySelect">
                         <option value="">選択してください</option>
-                        <!-- 国リストはJSで埋め込み -->
                     </select>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="initialGlobalCheck" checked> グローバルランキングにスコアを表示する
+                    </label>
                 </div>
                 <button class="btn btn-primary" id="confirmNameBtn">決定</button>
             </div>
@@ -261,6 +300,15 @@
     </div>
 
     <div id="toastContainer"></div>
+
+    <!-- Firebase SDK (CDN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app-check.js";
+        window.__firebaseModules = { initializeApp, getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp, getAuth, signInAnonymously, initializeAppCheck, ReCaptchaV3Provider };
+    </script>
     <script src="js/typing.js"></script>
 </body>
 </html>

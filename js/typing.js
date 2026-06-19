@@ -1,14 +1,29 @@
-(function() {
-    // --- 半角変換ユーティリティ ---
-    function toHalfWidth(str) {
-        return str
-            .replace(/\u3000/g, ' ')
-            .replace(/[\uff01-\uff5e]/g, function(ch) {
-                return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0);
-            });
-    }
+(async function() {
+    // ========== Firebase 設定 ==========
+    const firebaseConfig = {
+        apiKey: "AIzaSyC7-n4np2CUI_K6pzz9xg2mJpGjIp-h83M",
+        authDomain: "typing-dates-ranking.firebaseapp.com",
+        projectId: "typing-dates-ranking",
+        storageBucket: "typing-dates-ranking.firebasestorage.app",
+        messagingSenderId: "630755755162",
+        appId: "1:630755755162:web:7c90be554ea3df51bf4b23",
+        measurementId: "G-LZ6B4L5LK6"
+    };
+    const RECAPTCHA_SITE_KEY = "6LeU4ictAAAAAEub1IVEbbMNQQ6dymhYKw5M9pih";
 
-    // --- ローマ字マッピング（完全版） ---
+    let firebaseReady = false, db, auth;
+    try {
+        const { initializeApp, getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp, getAuth, signInAnonymously, initializeAppCheck, ReCaptchaV3Provider } = window.__firebaseModules;
+        const app = initializeApp(firebaseConfig);
+        initializeAppCheck(app, { provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY), isTokenAutoRefreshEnabled: true });
+        db = getFirestore(app); auth = getAuth(app);
+        await signInAnonymously(auth); firebaseReady = true;
+    } catch (e) { console.warn('Firebase 初期化失敗（ローカルのみ動作）', e); }
+
+    // --- 半角変換 ---
+    function toHalfWidth(str) { return str.replace(/\u3000/g, ' ').replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)); }
+
+    // --- ローマ字マッピング ---
     const baseKanaToRomaji = {
         'あ':['a'],'い':['i','yi'],'う':['u','wu'],'え':['e','ye'],'お':['o'],
         'か':['ka','ca'],'き':['ki'],'く':['ku','cu'],'け':['ke'],'こ':['ko','co'],
@@ -27,17 +42,12 @@
         'わ':['wa'],'を':['wo'],
         'ん':['nn','xn'],
     };
-
     const smallKanaList = [
-        {kana:'ぁ', romas:['xa','la']},{kana:'ぃ', romas:['xi','li']},
-        {kana:'ぅ', romas:['xu','lu']},{kana:'ぇ', romas:['xe','le']},
-        {kana:'ぉ', romas:['xo','lo']},{kana:'ヵ', romas:['xka','lka']},
-        {kana:'ヶ', romas:['xke','lke']},{kana:'ゃ', romas:['xya','lya']},
-        {kana:'ゅ', romas:['xyu','lyu']},{kana:'ょ', romas:['xyo','lyo']},
-        {kana:'ゎ', romas:['xwa','lwa']},{kana:'っ', romas:['xtu','xtsu','ltu','ltsu']},
+        {kana:'ぁ', romas:['xa','la']},{kana:'ぃ', romas:['xi','li']},{kana:'ぅ', romas:['xu','lu']},{kana:'ぇ', romas:['xe','le']},
+        {kana:'ぉ', romas:['xo','lo']},{kana:'ヵ', romas:['xka','lka']},{kana:'ヶ', romas:['xke','lke']},{kana:'ゃ', romas:['xya','lya']},
+        {kana:'ゅ', romas:['xyu','lyu']},{kana:'ょ', romas:['xyo','lyo']},{kana:'ゎ', romas:['xwa','lwa']},{kana:'っ', romas:['xtu','xtsu','ltu','ltsu']},
     ];
     smallKanaList.forEach(s => baseKanaToRomaji[s.kana] = s.romas);
-
     const sokuonBase = {
         'っか':['kka'],'っき':['kki'],'っく':['kku'],'っけ':['kke'],'っこ':['kko'],
         'っが':['gga'],'っぎ':['ggi'],'っぐ':['ggu'],'っげ':['gge'],'っご':['ggo'],
@@ -54,82 +64,54 @@
         'っわ':['wwa'],'っを':['wwo'],
     };
     Object.assign(baseKanaToRomaji, sokuonBase);
-
     const consonants = [
-        {c:'k', kana:'か'},{c:'g', kana:'が'},{c:'s', kana:'さ'},{c:'z', kana:'ざ'},
-        {c:'t', kana:'た'},{c:'d', kana:'だ'},{c:'n', kana:'な'},{c:'h', kana:'は'},
-        {c:'b', kana:'ば'},{c:'p', kana:'ぱ'},{c:'m', kana:'ま'},{c:'y', kana:'や'},
-        {c:'r', kana:'ら'},{c:'w', kana:'わ'},{c:'f', kana:'ふ'},{c:'ch', kana:'ち'},
-        {c:'sh', kana:'し'},{c:'j', kana:'じ'},
+        {c:'k', kana:'か'},{c:'g', kana:'が'},{c:'s', kana:'さ'},{c:'z', kana:'ざ'},{c:'t', kana:'た'},{c:'d', kana:'だ'},
+        {c:'n', kana:'な'},{c:'h', kana:'は'},{c:'b', kana:'ば'},{c:'p', kana:'ぱ'},{c:'m', kana:'ま'},{c:'y', kana:'や'},
+        {c:'r', kana:'ら'},{c:'w', kana:'わ'},{c:'f', kana:'ふ'},{c:'ch', kana:'ち'},{c:'sh', kana:'し'},{c:'j', kana:'じ'},
     ];
     const smallChars = [
         {char:'ゃ', roma:'ya'},{char:'ぃ', roma:'yi'},{char:'ゅ', roma:'yu'},{char:'ぇ', roma:'ye'},{char:'ょ', roma:'yo'},
         {char:'ぁ', roma:'a'},{char:'ぅ', roma:'u'},{char:'ぉ', roma:'o'},
     ];
-
     const manual = {
         'っふぁ':['ffa'],'っふぃ':['ffi'],'っふぇ':['ffe'],'っふぉ':['ffo'],
         'ってゃ':['ttha'],'ってぃ':['tthi'],'ってゅ':['tthu'],'ってぇ':['tthe'],'ってょ':['ttho'],
         'っでゃ':['ddha'],'っでぃ':['ddhi'],'っでゅ':['ddhu'],'っでぇ':['ddhe'],'っでょ':['ddho'],
     };
     Object.assign(baseKanaToRomaji, manual);
-
     consonants.forEach(cons => {
         smallChars.forEach(small => {
-            const kana = 'っ' + cons.kana + small.char;
-            const roma = cons.c + cons.c + small.roma;
+            const kana = 'っ' + cons.kana + small.char, roma = cons.c + cons.c + small.roma;
             if (!baseKanaToRomaji[kana]) baseKanaToRomaji[kana] = [roma];
             else if (!baseKanaToRomaji[kana].includes(roma)) baseKanaToRomaji[kana].push(roma);
         });
     });
-
     smallKanaList.forEach(s => {
-        const kana = 'っ' + s.kana;
-        const romas = [];
+        const kana = 'っ' + s.kana, romas = [];
         s.romas.forEach(r => {
-            if (r.startsWith('x')) {
-                romas.push('ll' + r.substring(1));
-                romas.push('xx' + r.substring(1));
-            } else if (r.startsWith('l')) {
-                romas.push('ll' + r.substring(1));
-                romas.push('xx' + r.substring(1));
-            }
+            if (r.startsWith('x')) { romas.push('ll' + r.substring(1)); romas.push('xx' + r.substring(1)); }
+            else if (r.startsWith('l')) { romas.push('ll' + r.substring(1)); romas.push('xx' + r.substring(1)); }
         });
         if (!baseKanaToRomaji[kana]) baseKanaToRomaji[kana] = [...new Set(romas)];
-        else {
-            romas.forEach(r => { if (!baseKanaToRomaji[kana].includes(r)) baseKanaToRomaji[kana].push(r); });
-        }
+        else romas.forEach(r => { if (!baseKanaToRomaji[kana].includes(r)) baseKanaToRomaji[kana].push(r); });
     });
-
     Object.assign(baseKanaToRomaji, {
-        'きゃ':['kya'],'きゅ':['kyu'],'きょ':['kyo'],
-        'ぎゃ':['gya'],'ぎゅ':['gyu'],'ぎょ':['gyo'],
-        'しゃ':['sha','sya'],'しゅ':['shu','syu'],'しょ':['sho','syo'],
-        'じゃ':['ja','zya'],'じゅ':['ju','zyu'],'じょ':['jo','zyo'],
-        'ちゃ':['cha','tya'],'ちゅ':['chu','tyu'],'ちょ':['cho','tyo'],
-        'にゃ':['nya'],'にゅ':['nyu'],'にょ':['nyo'],
-        'ひゃ':['hya'],'ひゅ':['hyu'],'ひょ':['hyo'],
-        'びゃ':['bya'],'びゅ':['byu'],'びょ':['byo'],
-        'ぴゃ':['pya'],'ぴゅ':['pyu'],'ぴょ':['pyo'],
-        'みゃ':['mya'],'みゅ':['myu'],'みょ':['myo'],
-        'りゃ':['rya'],'りゅ':['ryu'],'りょ':['ryo'],
-        'ふぁ':['fa'],'ふぃ':['fi'],'ふぇ':['fe'],'ふぉ':['fo'],
-        'てゃ':['tha'],'てぃ':['thi'],'てゅ':['thu'],'てぇ':['the'],'てょ':['tho'],
-        'でゃ':['dha'],'でぃ':['dhi'],'でゅ':['dhu'],'でぇ':['dhe'],'でょ':['dho'],
-        'ちぃ':['cyi','chi'],'ぢぃ':['dyi','dhi'],'ちぇ':['che'],'ぢぇ':['je','dhe'],
-        'ひぃ':['hyi','hi'],'びぃ':['byi','bi'],'ぴぃ':['pyi','pi'],
-        'ひぇ':['hye'],'びぇ':['bye'],'ぴぇ':['pye'],
-        'にぃ':['nyi'],'にぇ':['nye'],
-        'みぃ':['myi'],'みぇ':['mye'],
-        'りぃ':['ryi'],'りぇ':['rye'],
-        'きぃ':['kyi'],'ぎぃ':['gyi'],'ぎぇ':['gye'],'きぇ':['kye'],
+        'きゃ':['kya'],'きゅ':['kyu'],'きょ':['kyo'],'ぎゃ':['gya'],'ぎゅ':['gyu'],'ぎょ':['gyo'],
+        'しゃ':['sha','sya'],'しゅ':['shu','syu'],'しょ':['sho','syo'],'じゃ':['ja','zya'],'じゅ':['ju','zyu'],'じょ':['jo','zyo'],
+        'ちゃ':['cha','tya'],'ちゅ':['chu','tyu'],'ちょ':['cho','tyo'],'にゃ':['nya'],'にゅ':['nyu'],'にょ':['nyo'],
+        'ひゃ':['hya'],'ひゅ':['hyu'],'ひょ':['hyo'],'びゃ':['bya'],'びゅ':['byu'],'びょ':['byo'],
+        'ぴゃ':['pya'],'ぴゅ':['pyu'],'ぴょ':['pyo'],'みゃ':['mya'],'みゅ':['myu'],'みょ':['myo'],
+        'りゃ':['rya'],'りゅ':['ryu'],'りょ':['ryo'],'ふぁ':['fa'],'ふぃ':['fi'],'ふぇ':['fe'],'ふぉ':['fo'],
+        'てゃ':['tha'],'てぃ':['thi'],'てゅ':['thu'],'てぇ':['the'],'てょ':['tho'],'でゃ':['dha'],'でぃ':['dhi'],'でゅ':['dhu'],'でぇ':['dhe'],'でょ':['dho'],
+        'ちぃ':['cyi','chi'],'ぢぃ':['dyi','dhi'],'ちぇ':['che'],'ぢぇ':['je','dhe'],'ひぃ':['hyi','hi'],'びぃ':['byi','bi'],'ぴぃ':['pyi','pi'],
+        'ひぇ':['hye'],'びぇ':['bye'],'ぴぇ':['pye'],'にぃ':['nyi'],'にぇ':['nye'],'みぃ':['myi'],'みぇ':['mye'],
+        'りぃ':['ryi'],'りぇ':['rye'],'きぃ':['kyi'],'ぎぃ':['gyi'],'ぎぇ':['gye'],'きぇ':['kye'],
         'しぃ':['syi','shi'],'じぃ':['zyi','ji'],'じぇ':['je','zye'],'しぇ':['she'],
         '。':['.','ten',' '],'．':['.','ten',' '],'.':['.','ten',' '],'、':[','],'！':['!'],'？':['?'],
     });
-
     const kanaToRomaji = baseKanaToRomaji;
 
-    // --- 問題データ（50問以上） ---
+    // --- 問題データ（日本語） ---
     const problemData = {
         word: [
             {display:'猫',reading:'ねこ'},{display:'犬',reading:'いぬ'},{display:'空',reading:'そら'},{display:'海',reading:'うみ'},
@@ -222,13 +204,43 @@
 
     function getAllProblems(){ return Object.values(problemData).flat(); }
     function shuffleArray(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
-    function getProblemsForGame(type, count) {
-        let pool = type==='random' ? getAllProblems() : (problemData[type]||problemData.word);
-        if (pool.length < count) {
-            const rep = Math.ceil(count/pool.length);
-            pool = Array(rep).fill(pool).flat();
+
+    // --- 英語フォールバック ---
+    const fallbackEnglishWords = [
+        {display:'apple',reading:'apple'},{display:'book',reading:'book'},{display:'cat',reading:'cat'},
+        {display:'dog',reading:'dog'},{display:'egg',reading:'egg'},{display:'flower',reading:'flower'},
+        {display:'garden',reading:'garden'},{display:'house',reading:'house'},{display:'ice',reading:'ice'},
+        {display:'jungle',reading:'jungle'},{display:'key',reading:'key'},{display:'lion',reading:'lion'},
+        {display:'moon',reading:'moon'},{display:'night',reading:'night'},{display:'ocean',reading:'ocean'},
+        {display:'pencil',reading:'pencil'},{display:'queen',reading:'queen'},{display:'rain',reading:'rain'},
+        {display:'sun',reading:'sun'},{display:'tree',reading:'tree'},{display:'umbrella',reading:'umbrella'},
+        {display:'village',reading:'village'},{display:'water',reading:'water'},{display:'xylophone',reading:'xylophone'},
+        {display:'yellow',reading:'yellow'},{display:'zebra',reading:'zebra'}
+    ];
+
+    async function fetchEnglishWords(count = 25) {
+        try {
+            const resp = await fetch(`https://random-word-api.herokuapp.com/word?number=${count}`);
+            const words = await resp.json();
+            return words.map(w => ({display:w, reading:w}));
+        } catch (e) { return [...fallbackEnglishWords]; }
+    }
+
+    let englishWordPool = [];
+    async function prepareEnglishPool() {
+        const apiWords = await fetchEnglishWords(25);
+        englishWordPool = shuffleArray([...fallbackEnglishWords, ...apiWords]);
+    }
+
+    function getProblemsForGame(type, count, lang) {
+        if (lang === 'en') {
+            const pool = englishWordPool.length >= count ? [...englishWordPool] : [...fallbackEnglishWords];
+            return shuffleArray(pool).slice(0, count);
+        } else {
+            let pool = type === 'random' ? getAllProblems() : (problemData[type] || problemData.word);
+            if (pool.length < count) { const rep = Math.ceil(count / pool.length); pool = Array(rep).fill(pool).flat(); }
+            return shuffleArray(pool).slice(0, count);
         }
-        return shuffleArray(pool).slice(0,count);
     }
 
     function isKanji(ch){ const code=ch.charCodeAt(0); return (code>=0x4E00&&code<=0x9FFF)||(code>=0x3400&&code<=0x4DBF)||ch==='々'; }
@@ -267,18 +279,81 @@
     }
 
     const RK='typing_rank_final_v4';
-    function loadR(){try{return JSON.parse(localStorage.getItem(RK))||[];}catch{return[];}}
-    function saveR(e){
-        const r=loadR();
-        const user = getUserInfo();
-        r.push({...e, name: user.name, country: user.country, date: new Date().toISOString()});
+    function loadLocalRankings(){try{return JSON.parse(localStorage.getItem(RK))||[];}catch{return[];}}
+    function saveLocalRanking(entry){
+        const r=loadLocalRankings();
+        r.push(entry);
         r.sort((a,b)=>b.score-a.score);
         localStorage.setItem(RK,JSON.stringify(r.slice(0,50)));
     }
-    function clearR(){localStorage.removeItem(RK);}
-    function filterR(r,m,t){return r.filter(x=>(m==='all'||x.mode===m)&&(t==='all'||x.type===t));}
+    function clearLocalRankings(){localStorage.removeItem(RK);}
+    function filterRankings(r, m, t, l){
+        return r.filter(x=>
+            (m==='all'||x.mode===m) &&
+            (t==='all'||x.type===t) &&
+            (l==='all'||(x.lang||'ja')===l)
+        );
+    }
 
-    // --- ユーザー情報管理 ---
+    // --- グローバル表示設定 ---
+    function getGlobalVisibility() {
+        const val = localStorage.getItem('typing_global_visibility');
+        return val === null ? true : val === 'true';
+    }
+    function setGlobalVisibility(visible) {
+        localStorage.setItem('typing_global_visibility', visible);
+        els.globalVisibilityCheck.checked = visible;
+        els.initialGlobalCheck.checked = visible;
+    }
+
+    async function saveGlobalRanking(entry) {
+        if (!firebaseReady || !db) return;
+        if (!getGlobalVisibility()) return;
+        try {
+            await addDoc(collection(db, 'rankings'), {
+                displayName: entry.name,
+                country: entry.country || '',
+                score: entry.score,
+                grade: entry.grade,
+                lang: entry.lang,
+                mode: entry.mode,
+                type: entry.type,
+                accuracy: entry.accuracy,
+                kps: entry.kps,
+                wpm: entry.wpm,
+                elapsedSec: entry.elapsedSec,
+                createdAt: serverTimestamp()
+            });
+        } catch (e) { console.warn('Firebase 保存エラー', e); }
+    }
+
+    async function loadGlobalRankings() {
+        if (!firebaseReady || !db) return [];
+        try {
+            const q = query(collection(db, 'rankings'), orderBy('score', 'desc'), limit(50));
+            const snapshot = await getDocs(q);
+            const results = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                results.push({
+                    name: data.displayName,
+                    country: data.country || '',
+                    score: data.score,
+                    grade: data.grade,
+                    lang: data.lang || 'ja',
+                    mode: data.mode,
+                    type: data.type,
+                    accuracy: data.accuracy,
+                    kps: data.kps,
+                    wpm: data.wpm,
+                    elapsedSec: data.elapsedSec,
+                    date: data.createdAt ? data.createdAt.toDate().toISOString() : null
+                });
+            });
+            return results;
+        } catch (e) { return []; }
+    }
+
     function getUserInfo() {
         const name = localStorage.getItem('typing_user_name') || '';
         const country = localStorage.getItem('typing_user_country') || '';
@@ -292,10 +367,17 @@
     function updateHeaderUserInfo() {
         const { name, country } = getUserInfo();
         if (name && country) {
-            els.headerUserInfo.textContent = `${name} (${country})`;
+            els.headerUserInfoText.textContent = `${name} (${country})`;
         } else {
-            els.headerUserInfo.textContent = '';
+            els.headerUserInfoText.textContent = '未設定';
         }
+    }
+
+    // --- 「ん」の動的候補 ---
+    function getAcceptedForN(nextToken) {
+        const restrictPatterns = /^[あいうえおぁぃぅぇぉゃゅょゎなにぬねの]/;
+        if (!nextToken || restrictPatterns.test(nextToken)) return ['nn'];
+        return ['nn', 'n'];
     }
 
     const $=s=>document.querySelector(s);
@@ -310,42 +392,35 @@
         scoreValue:$('#scoreValue'), comboValue:$('#comboValue'), accuracyValue:$('#accuracyValue'), progressValue:$('#progressValue'),
         gradeDisplay:$('#gradeDisplay'), resultScore:$('#resultScore'), resultKPS:$('#resultKPS'), resultWPM:$('#resultWPM'),
         resultAccuracy:$('#resultAccuracy'), resultMaxCombo:$('#resultMaxCombo'), resultCharType:$('#resultCharType'),
-        rankingBody:$('#rankingBody'), rankingModeFilter:$('#rankingModeFilter'), rankingTypeFilter:$('#rankingTypeFilter'),
-        modeSelect:$('#modeSelect'), typeSelect:$('#typeSelect'), difficultySelect:$('#difficultySelect'), difficultyGroup:$('#difficultyGroup'),
+        rankingBody:$('#rankingBody'), rankingModeFilter:$('#rankingModeFilter'), rankingTypeFilter:$('#rankingTypeFilter'), rankingLangFilter:$('#rankingLangFilter'),
+        modeSelect:$('#modeSelect'), langSelect:$('#langSelect'), typeSelect:$('#typeSelect'), difficultySelect:$('#difficultySelect'), difficultyGroup:$('#difficultyGroup'),
         showReading:$('#showReading'), showRomaji:$('#showRomaji'), useCharType:$('#useCharType'),
         startBtn:$('#startBtn'), quitBtn:$('#quitBtn'), retryBtn:$('#retryBtn'), backToSettingsBtn:$('#backToSettingsBtn'),
-        rankingBtn:$('#rankingBtn'), closeRankingBtn:$('#closeRankingBtn'), clearRankingBtn:$('#clearRankingBtn'), toastContainer:$('#toastContainer'),
-        themeBtn:$('#themeBtn'),
-        helpBtn:$('#helpBtn'), closeHelpBtn:$('#closeHelpBtn'),
-        headerUserInfo:$('#headerUserInfo'),
-        namePromptOverlay:$('#namePromptOverlay'),
-        userNameInput:$('#userNameInput'),
-        userCountrySelect:$('#userCountrySelect'),
-        confirmNameBtn:$('#confirmNameBtn'),
+        rankingBtn:$('#rankingBtn'), closeRankingBtn:$('#closeRankingBtn'), clearRankingBtn:$('#clearRankingBtn'),
+        rankingTabLocal:$('#rankingTabLocal'), rankingTabGlobal:$('#rankingTabGlobal'), rankingTitle:$('#rankingTitle'),
+        toastContainer:$('#toastContainer'), themeBtn:$('#themeBtn'), helpBtn:$('#helpBtn'), closeHelpBtn:$('#closeHelpBtn'),
+        headerUserInfoBtn:$('#headerUserInfoBtn'), headerUserInfoText:$('#headerUserInfoText'),
+        visibilitySettingsOverlay:$('#visibilitySettingsOverlay'), globalVisibilityCheck:$('#globalVisibilityCheck'),
+        saveVisibilityBtn:$('#saveVisibilityBtn'), closeVisibilityBtn:$('#closeVisibilityBtn'),
+        namePromptOverlay:$('#namePromptOverlay'), userNameInput:$('#userNameInput'), userCountrySelect:$('#userCountrySelect'),
+        confirmNameBtn:$('#confirmNameBtn'), initialGlobalCheck:$('#initialGlobalCheck'),
     };
 
-    // 国リスト
     const countryList = [
         "その他","日本","アメリカ合衆国","イギリス","フランス","ドイツ","イタリア","スペイン","韓国","中国","台湾",
         "オーストラリア","カナダ","ブラジル","インド","ロシア","メキシコ","オランダ","スイス","スウェーデン","ノルウェー",
         "デンマーク","フィンランド","ポルトガル","ギリシャ","トルコ","サウジアラビア","アラブ首長国連邦","インドネシア","タイ","ベトナム","フィリピン",
         "マレーシア","シンガポール","ニュージーランド","南アフリカ","エジプト","アルゼンチン","チリ","コロンビア","ペルー"
     ];
-    // selectに国を埋め込み
     countryList.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
+        opt.value = c; opt.textContent = c;
         els.userCountrySelect.appendChild(opt);
     });
 
-    // テーマ切替
     function setTheme(isDark) {
-        if (isDark) {
-            document.body.classList.remove('light');
-        } else {
-            document.body.classList.add('light');
-        }
+        if (isDark) { document.body.classList.remove('light'); }
+        else { document.body.classList.add('light'); }
         els.themeBtn.textContent = isDark ? '🌙' : '☀️';
         localStorage.setItem('typingDarkMode', isDark ? 'true' : 'false');
     }
@@ -359,21 +434,18 @@
     function toast(m,d=2200){const e=document.createElement('div');e.className='toast';e.textContent=m;els.toastContainer.appendChild(e);setTimeout(()=>e.remove(),d+400);}
 
     function showPanel(panelName){
-        ['settingsPanel','gamePanel','resultPanel','rankingPanel','helpPanel'].forEach(k => {
-            els[k].classList.add('hidden');
-        });
+        ['settingsPanel','gamePanel','resultPanel','rankingPanel','helpPanel'].forEach(k => { els[k].classList.add('hidden'); });
         if(panelName) els[panelName].classList.remove('hidden');
     }
 
     const G = {
-        mode:'normal', problemType:'word', difficulty:'intermediate', problems:[], currentProblemIndex:0,
+        mode:'normal', problemType:'word', problemLang:'ja', difficulty:'intermediate', problems:[], currentProblemIndex:0,
         tokens:[], tokenIndex:0, displayChars:[],
         score:0, combo:0, maxCombo:0, totalInputs:0, correctInputs:0, mistakes:0,
         isPlaying:false, startTime:null, endTime:null, infiniteTimer:null, infiniteTimeLimit:4, infiniteTimeLeft:4,
         solvedCount:0, totalProblems:15,
         tokenCandidates:[], tokenMatchStr:'',
-        leftLocked: true,
-        completedRomaji: [],
+        leftLocked: true, completedRomaji: [],
         optShowReading: true, optShowRomaji: true, optUseCharType: false,
         countdownTimer: null, countdownLeft: 3, isCountingDown: false, countdownPaused: false,
     };
@@ -382,10 +454,8 @@
         clearInfiniteTimer(); clearCountdownTimer();
         Object.assign(G, {
             tokens:[], tokenIndex:0, score:0, combo:0, maxCombo:0,
-            totalInputs:0, correctInputs:0, mistakes:0,
-            isPlaying:false, startTime:null, solvedCount:0,
-            tokenCandidates:[], tokenMatchStr:'',
-            leftLocked:true, completedRomaji: [],
+            totalInputs:0, correctInputs:0, mistakes:0, isPlaying:false, startTime:null, solvedCount:0,
+            tokenCandidates:[], tokenMatchStr:'', leftLocked:true, completedRomaji: [],
             isCountingDown: false, countdownPaused: false, countdownLeft: 3
         });
     }
@@ -429,7 +499,6 @@
             updateCountdownDisplay();
         }, 100);
     }
-
     function updateCountdownDisplay() {
         const sec = Math.ceil(G.countdownLeft);
         els.countdownNumber.textContent = sec;
@@ -439,7 +508,6 @@
             els.countdownNumber.style.animation = 'countPulse 0.8s ease-in-out';
         }
     }
-
     function finishCountdown() {
         clearCountdownTimer(); G.isCountingDown = false;
         els.countdownOverlay.style.display = 'none';
@@ -448,13 +516,18 @@
     }
 
     function startGameActual() {
-        G.problems = getProblemsForGame(G.problemType, G.mode==='infinite' ? 999 : G.totalProblems);
+        G.problems = getProblemsForGame(G.problemType, G.mode==='infinite' ? 999 : G.totalProblems, G.problemLang);
         G.currentProblemIndex=0; G.solvedCount=0;
         G.isPlaying=true; G.startTime=Date.now();
-        if (G.optShowReading) els.lineReading.classList.remove('hidden');
-        else els.lineReading.classList.add('hidden');
-        if (G.optShowRomaji) els.lineRomaji.classList.remove('hidden');
-        else els.lineRomaji.classList.add('hidden');
+        if (G.problemLang === 'en') {
+            els.lineReading.classList.add('hidden');
+            els.lineRomaji.classList.add('hidden');
+        } else {
+            if (G.optShowReading) els.lineReading.classList.remove('hidden');
+            else els.lineReading.classList.add('hidden');
+            if (G.optShowRomaji) els.lineRomaji.classList.remove('hidden');
+            else els.lineRomaji.classList.add('hidden');
+        }
         loadCurrentProblem(); updateStatsDisplay();
         els.hiddenInput.value=''; els.hiddenInput.focus(); els.inputFeedback.textContent='ここにローマ字を入力してください';
         if(G.mode==='infinite') { startInfiniteTimer(); }
@@ -463,8 +536,8 @@
 
     function startGame(){
         resetG();
-        G.mode=els.modeSelect.value; G.problemType=els.typeSelect.value; G.difficulty=els.difficultySelect.value;
-        G.totalProblems=15;
+        G.mode=els.modeSelect.value; G.problemType=els.typeSelect.value; G.problemLang=els.langSelect.value;
+        G.difficulty=els.difficultySelect.value; G.totalProblems=15;
         G.optShowReading = els.showReading.checked;
         G.optShowRomaji = els.showRomaji.checked;
         G.optUseCharType = els.useCharType.checked;
@@ -484,23 +557,31 @@
     function loadCurrentProblem(){
         if(G.currentProblemIndex>=G.problems.length){
             if(G.mode==='normal'){endGame('complete');return;}
-            G.problems.push(...getProblemsForGame(G.problemType, 50));
+            G.problems.push(...getProblemsForGame(G.problemType, 50, G.problemLang));
         }
         const prob=G.problems[G.currentProblemIndex];
         G.displayChars=[...prob.display];
-        G.tokens = [...prob.reading].reduce((acc,ch)=>{
-            if('ゃゅょャュョ'.includes(ch) && acc.length>0){
-                acc[acc.length-1] += ch;
-            } else { acc.push(ch); }
-            return acc;
-        }, []);
+        if (G.problemLang === 'en') {
+            G.tokens = [...prob.display];
+        } else {
+            G.tokens = [...prob.reading].reduce((acc,ch)=>{
+                if('ゃゅょャュョ'.includes(ch) && acc.length>0){ acc[acc.length-1] += ch; }
+                else { acc.push(ch); }
+                return acc;
+            }, []);
+        }
         G.tokenIndex=0; G.leftLocked = true; G.completedRomaji = [];
         resetTokenState(); renderAllLines(); updateProgressDisplay();
     }
 
     function resetTokenState(){
         const token = G.tokens[G.tokenIndex] || '';
-        G.tokenCandidates = kanaToRomaji[token] || [token];
+        if (token === 'ん' && G.problemLang === 'ja') {
+            const nextToken = G.tokenIndex + 1 < G.tokens.length ? G.tokens[G.tokenIndex + 1] : null;
+            G.tokenCandidates = getAcceptedForN(nextToken);
+        } else {
+            G.tokenCandidates = kanaToRomaji[token] || [token];
+        }
         G.tokenMatchStr = '';
     }
 
@@ -537,30 +618,35 @@
 
     function renderAllLines(){
         const displayChars = G.displayChars; const tokens = G.tokens;
-        const kanjiBlocks = getKanjiBlocks();
+        const kanjiBlocks = G.problemLang === 'ja' ? getKanjiBlocks() : [];
 
         let htmlDisplay = '';
         for (let i=0; i<displayChars.length; i++) {
-            const block = kanjiBlocks.find(b => i >= b.startDisplayIdx && i <= b.endDisplayIdx);
             let cls = 'remaining';
-            if (block) {
-                if (isKanjiCompleted(block)) cls = 'correct';
-                else if (G.tokenIndex >= block.startTokenIdx && G.tokenIndex <= block.endTokenIdx) cls = 'current';
+            if (G.problemLang === 'ja') {
+                const block = kanjiBlocks.find(b => i >= b.startDisplayIdx && i <= b.endDisplayIdx);
+                if (block) {
+                    if (isKanjiCompleted(block)) cls = 'correct';
+                    else if (G.tokenIndex >= block.startTokenIdx && G.tokenIndex <= block.endTokenIdx) cls = 'current';
+                }
+            } else {
+                if (i < G.tokenIndex) cls = 'correct';
+                else if (i === G.tokenIndex) cls = 'current';
             }
             htmlDisplay += `<span class="char ${cls}">${escHtml(displayChars[i])}</span>`;
         }
         els.lineDisplay.innerHTML = htmlDisplay;
 
-        if (G.optShowReading) {
+        if (G.problemLang === 'ja' && G.optShowReading) {
             let htmlReading = '';
             for (let i=0; i<tokens.length; i++) {
                 let cls = (i<G.tokenIndex)?'correct':(i===G.tokenIndex)?'current':'remaining';
                 htmlReading += `<span class="char ${cls}">${escHtml(tokens[i])}</span>`;
             }
             els.lineReading.innerHTML = htmlReading;
-        }
+        } else { els.lineReading.innerHTML = ''; }
 
-        if (G.optShowRomaji) {
+        if (G.problemLang === 'ja' && G.optShowRomaji) {
             let htmlRomaji = '';
             for (let i=0; i<tokens.length; i++) {
                 const token = tokens[i];
@@ -578,7 +664,7 @@
                 }
             }
             els.lineRomaji.innerHTML = htmlRomaji;
-        }
+        } else { els.lineRomaji.innerHTML = ''; }
 
         const currentSpan = els.lineDisplay.querySelector('.char.current');
         if (currentSpan) {
@@ -615,7 +701,6 @@
     });
     els.hiddenInput.addEventListener('focus', () => { if (G.isCountingDown) G.countdownPaused = false; });
     els.gamePanel.addEventListener('click', () => { if (G.isPlaying || G.isCountingDown) els.hiddenInput.focus(); });
-
     els.hiddenInput.addEventListener('input', function() { this.value = ''; });
 
     els.hiddenInput.addEventListener('keydown', function(e){
@@ -688,7 +773,7 @@
         els.hiddenInput.value = ''; els.hiddenInput.focus();
     }
 
-    function endGame(reason){
+    async function endGame(reason){
         G.isPlaying = false; clearInfiniteTimer();
         els.timerBarWrap.classList.add('hidden'); els.timerText.textContent='';
         const elapsed = (Date.now()-G.startTime)/1000;
@@ -702,7 +787,18 @@
         els.resultAccuracy.textContent = Math.round(accuracy*100)+'%'; els.resultMaxCombo.textContent = G.maxCombo;
         const activeMult = getCharTypeMultiplier(G.problems[0]?.display||'', G.optUseCharType, G.optShowRomaji, G.optShowReading);
         els.resultCharType.textContent = G.optUseCharType ? getCharTypeLabel(activeMult) : '補正なし';
-        saveR({score:finalScore,grade:grade.grade,mode:G.mode,type:G.problemType,accuracy:Math.round(accuracy*100),kps,wpm,elapsedSec:elapsed});
+
+        const user = getUserInfo();
+        const entry = {
+            name: user.name, country: user.country,
+            score: finalScore, grade: grade.grade,
+            lang: G.problemLang, mode: G.mode, type: G.problemType,
+            accuracy: Math.round(accuracy*100), kps, wpm, elapsedSec: elapsed,
+            date: new Date().toISOString()
+        };
+        saveLocalRanking(entry);
+        await saveGlobalRanking(entry);
+
         showPanel('resultPanel');
         if(reason==='timeout') toast('⏰ 時間切れ！'); else toast('🎯 全問完了！');
     }
@@ -712,33 +808,92 @@
         clearInfiniteTimer(); resetG(); showPanel('settingsPanel');
     }
 
-    function renderRankingTable(){
-        const rankings = loadR();
-        const filtered = filterR(rankings, els.rankingModeFilter.value, els.rankingTypeFilter.value);
-        if(filtered.length===0){ els.rankingBody.innerHTML=`<tr><td colspan="10" class="empty-message">データがありません</td></tr>`; return; }
+    let currentRankingTab = 'local';
+    async function renderRankingTable(tab = currentRankingTab) {
+        currentRankingTab = tab;
+        let rankings = [];
+        if (tab === 'local') {
+            rankings = loadLocalRankings();
+            els.rankingTitle.textContent = '🏆 ローカルランキング';
+            els.rankingTabLocal.classList.add('active'); els.rankingTabGlobal.classList.remove('active');
+        } else {
+            els.rankingTabLocal.classList.remove('active'); els.rankingTabGlobal.classList.add('active');
+            els.rankingTitle.textContent = '🌐 グローバルランキング';
+            rankings = await loadGlobalRankings();
+        }
+        const modeFilter = els.rankingModeFilter.value;
+        const typeFilter = els.rankingTypeFilter.value;
+        const langFilter = els.rankingLangFilter ? els.rankingLangFilter.value : 'all';
+        const filtered = filterRankings(rankings, modeFilter, typeFilter, langFilter);
+        if(filtered.length===0){
+            els.rankingBody.innerHTML = `<tr><td colspan="11" class="empty-message">データがありません</td></tr>`;
+            return;
+        }
         els.rankingBody.innerHTML = filtered.slice(0,10).map((r,i)=>{
             const rank=i+1;
             const rc=rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-other';
             const grade = getGrade(r.score, r.kps||0, r.accuracy/100, false);
+            const langLabel = (r.lang==='en')?'🇬🇧 英語':'🇯🇵 日本語';
             return `<tr>
                 <td><span class="rank-badge ${rc}">${rank}</span></td>
                 <td>${escapeHtml(r.name||'')}</td>
                 <td>${escapeHtml(r.country||'')}</td>
                 <td><strong>${r.score}</strong></td>
                 <td><span class="${grade.css}">${r.grade||grade.grade}</span></td>
+                <td>${langLabel}</td>
                 <td>${r.mode==='infinite'?'無限':'通常'}</td>
-                <td>${{word:'単語',short:'短文',sentence:'文',long:'長文',random:'ランダム'}[r.type]}</td>
+                <td>${{word:'単語',short:'短文',sentence:'文',long:'長文',random:'ランダム'}[r.type]||r.type}</td>
                 <td>${r.accuracy}%</td><td>${r.wpm||'-'}</td>
                 <td>${r.date?new Date(r.date).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'-'}</td>
             </tr>`;
         }).join('');
     }
 
-    function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str || '';
-        return div.innerHTML;
+    function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML; }
+
+    els.rankingBtn.addEventListener('click', ()=>{ showPanel('rankingPanel'); renderRankingTable('local'); });
+    els.closeRankingBtn.addEventListener('click', ()=> showPanel('settingsPanel'));
+    els.clearRankingBtn.addEventListener('click', ()=>{
+        if(confirm('ローカルランキングを削除しますか？（グローバルは削除されません）')){
+            clearLocalRankings(); renderRankingTable('local');
+            toast('🗑 ローカルランキングをクリアしました');
+        }
+    });
+    els.rankingModeFilter.addEventListener('change', ()=> renderRankingTable(currentRankingTab));
+    els.rankingTypeFilter.addEventListener('change', ()=> renderRankingTable(currentRankingTab));
+    if (els.rankingLangFilter) els.rankingLangFilter.addEventListener('change', ()=> renderRankingTable(currentRankingTab));
+    els.rankingTabLocal.addEventListener('click', () => renderRankingTable('local'));
+    els.rankingTabGlobal.addEventListener('click', () => renderRankingTable('global'));
+
+    els.headerUserInfoBtn.addEventListener('click', () => {
+        els.globalVisibilityCheck.checked = getGlobalVisibility();
+        els.visibilitySettingsOverlay.classList.remove('hidden');
+    });
+    els.closeVisibilityBtn.addEventListener('click', () => { els.visibilitySettingsOverlay.classList.add('hidden'); });
+    els.saveVisibilityBtn.addEventListener('click', () => {
+        setGlobalVisibility(els.globalVisibilityCheck.checked);
+        els.visibilitySettingsOverlay.classList.add('hidden');
+        toast('表示設定を保存しました');
+    });
+
+    function checkUserInfo() {
+        const { name, country } = getUserInfo();
+        if (!name || !country) {
+            els.initialGlobalCheck.checked = getGlobalVisibility();
+            els.namePromptOverlay.classList.remove('hidden');
+        } else { els.namePromptOverlay.classList.add('hidden'); updateHeaderUserInfo(); }
     }
+    els.confirmNameBtn.addEventListener('click', () => {
+        const name = els.userNameInput.value.trim();
+        const country = els.userCountrySelect.value;
+        if (!name) { toast('名前を入力してください'); return; }
+        if (!country) { toast('国を選択してください'); return; }
+        setUserInfo(name, country);
+        setGlobalVisibility(els.initialGlobalCheck.checked);
+        els.namePromptOverlay.classList.add('hidden');
+        updateHeaderUserInfo();
+        toast('設定を保存しました！');
+    });
 
     els.modeSelect.addEventListener('change', ()=>{
         if (els.modeSelect.value === 'infinite') { els.difficultyGroup.classList.remove('hidden'); }
@@ -748,42 +903,19 @@
     els.quitBtn.addEventListener('click', quitGame);
     els.retryBtn.addEventListener('click', startGame);
     els.backToSettingsBtn.addEventListener('click', ()=>{ showPanel('settingsPanel'); });
-    els.rankingBtn.addEventListener('click', ()=>{ showPanel('rankingPanel'); renderRankingTable(); });
-    els.closeRankingBtn.addEventListener('click', ()=>{ showPanel('settingsPanel'); });
-    els.clearRankingBtn.addEventListener('click', ()=>{ if(confirm('削除しますか？')){ clearR(); renderRankingTable(); toast('🗑 クリアしました'); } });
-    els.rankingModeFilter.addEventListener('change', renderRankingTable);
-    els.rankingTypeFilter.addEventListener('change', renderRankingTable);
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && G.isPlaying) quitGame(); });
-
     els.helpBtn.addEventListener('click', () => { showPanel('helpPanel'); });
     els.closeHelpBtn.addEventListener('click', () => { showPanel('settingsPanel'); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && G.isPlaying) quitGame(); });
 
-    // 初回設定モーダル
-    function checkUserInfo() {
-        const { name, country } = getUserInfo();
-        if (!name || !country) {
-            els.namePromptOverlay.classList.remove('hidden');
-        } else {
-            els.namePromptOverlay.classList.add('hidden');
-            updateHeaderUserInfo();
-        }
-    }
-    els.confirmNameBtn.addEventListener('click', () => {
-        const name = els.userNameInput.value.trim();
-        const country = els.userCountrySelect.value;
-        if (!name) { toast('名前を入力してください'); return; }
-        if (!country) { toast('国を選択してください'); return; }
-        setUserInfo(name, country);
-        els.namePromptOverlay.classList.add('hidden');
-        updateHeaderUserInfo();
-    });
-
-    function init(){
+    async function init(){
         updateHeaderUserInfo();
         checkUserInfo();
+        await prepareEnglishPool();
         showPanel('settingsPanel');
         els.difficultyGroup.classList.add('hidden');
         els.countdownOverlay.style.display = 'none';
+        els.rankingTabLocal.classList.add('active');
+        els.rankingTabGlobal.classList.remove('active');
     }
     init();
 })();
