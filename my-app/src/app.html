@@ -8,5 +8,13 @@
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>
+		<!-- Firebase SDK (CDN) -->
+		<script type="module">
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+			import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+			import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+			import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app-check.js";
+			window.__firebaseModules = { initializeApp, getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp, getAuth, signInAnonymously, initializeAppCheck, ReCaptchaV3Provider };
+		</script>
 	</body>
 </html>
