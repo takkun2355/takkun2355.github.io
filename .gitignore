@@ -1,1 +1,10 @@
-/node_modules
+# 自分専用なので
+.gitignore
+ai.txt
+
+# 良く更新される
+dashboard.svg
+
+node_modules/
+node_modules
+dist

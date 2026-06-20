@@ -1,3 +1,5 @@
+import { TypingText } from '@mogamoga1024/typing-jp';
+
 (async function() {
     // ========== Firebase 設定 ==========
     const firebaseConfig = {
@@ -19,102 +21,11 @@
         db = getFirestore(app); auth = getAuth(app);
         await signInAnonymously(auth);
         firebaseReady = true;
-        console.log('Firebase: 匿名認証に成功しました');
-    } catch (e) {
-        console.error('Firebase 初期化失敗（グローバルランキングは利用できません）', e);
-    }
+        console.log('Firebase ready');
+    } catch (e) { console.warn('Firebase init failed, global ranking unavailable', e); }
 
     // --- 半角変換 ---
     function toHalfWidth(str) { return str.replace(/\u3000/g, ' ').replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)); }
-
-    // --- ローマ字マッピング ---
-    const baseKanaToRomaji = {
-        'あ':['a'],'い':['i','yi'],'う':['u','wu'],'え':['e','ye'],'お':['o'],
-        'か':['ka','ca'],'き':['ki'],'く':['ku','cu'],'け':['ke'],'こ':['ko','co'],
-        'が':['ga'],'ぎ':['gi'],'ぐ':['gu'],'げ':['ge'],'ご':['go'],
-        'さ':['sa'],'し':['shi','si','ci'],'す':['su'],'せ':['se','ce'],'そ':['so'],
-        'ざ':['za'],'じ':['ji','zi'],'ず':['zu'],'ぜ':['ze'],'ぞ':['zo'],
-        'た':['ta'],'ち':['chi','ti'],'つ':['tsu','tu'],'て':['te'],'と':['to'],
-        'だ':['da'],'ぢ':['di'],'づ':['du'],'で':['de'],'ど':['do'],
-        'な':['na'],'に':['ni'],'ぬ':['nu'],'ね':['ne'],'の':['no'],
-        'は':['ha'],'ひ':['hi'],'ふ':['fu','hu'],'へ':['he'],'ほ':['ho'],
-        'ば':['ba'],'び':['bi'],'ぶ':['bu'],'べ':['be'],'ぼ':['bo'],
-        'ぱ':['pa'],'ぴ':['pi'],'ぷ':['pu'],'ぺ':['pe'],'ぽ':['po'],
-        'ま':['ma'],'み':['mi'],'む':['mu'],'め':['me'],'も':['mo'],
-        'や':['ya'],'ゆ':['yu'],'よ':['yo'],
-        'ら':['ra'],'り':['ri'],'る':['ru'],'れ':['re'],'ろ':['ro'],
-        'わ':['wa'],'を':['wo'],
-        'ん':['nn','xn'],
-        'ー':['-'], // 長音符はハイフンで入力可能にする
-    };
-    const smallKanaList = [
-        {kana:'ぁ', romas:['xa','la']},{kana:'ぃ', romas:['xi','li']},{kana:'ぅ', romas:['xu','lu']},{kana:'ぇ', romas:['xe','le']},
-        {kana:'ぉ', romas:['xo','lo']},{kana:'ヵ', romas:['xka','lka']},{kana:'ヶ', romas:['xke','lke']},{kana:'ゃ', romas:['xya','lya']},
-        {kana:'ゅ', romas:['xyu','lyu']},{kana:'ょ', romas:['xyo','lyo']},{kana:'ゎ', romas:['xwa','lwa']},{kana:'っ', romas:['xtu','xtsu','ltu','ltsu']},
-    ];
-    smallKanaList.forEach(s => baseKanaToRomaji[s.kana] = s.romas);
-    const sokuonBase = {
-        'っか':['kka'],'っき':['kki'],'っく':['kku'],'っけ':['kke'],'っこ':['kko'],
-        'っが':['gga'],'っぎ':['ggi'],'っぐ':['ggu'],'っげ':['gge'],'っご':['ggo'],
-        'っさ':['ssa'],'っし':['sshi','ssi'],'っす':['ssu'],'っせ':['sse'],'っそ':['sso'],
-        'っざ':['zza'],'っじ':['jji','zzi'],'っず':['zzu'],'っぜ':['zze'],'っぞ':['zzo'],
-        'った':['tta'],'っち':['cchi','tti'],'っつ':['ttsu','ttu'],'って':['tte'],'っと':['tto'],
-        'っだ':['dda'],'っぢ':['ddi'],'っづ':['ddu'],'っで':['dde'],'っど':['ddo'],
-        'っは':['hha'],'っひ':['hhi'],'っふ':['ffu','hhu'],'っへ':['hhe'],'っほ':['hho'],
-        'っば':['bba'],'っび':['bbi'],'っぶ':['bbu'],'っべ':['bbe'],'っぼ':['bbo'],
-        'っぱ':['ppa'],'っぴ':['ppi'],'っぷ':['ppu'],'っぺ':['ppe'],'っぽ':['ppo'],
-        'っま':['mma'],'っみ':['mmi'],'っむ':['mmu'],'っめ':['mme'],'っも':['mmo'],
-        'っや':['yya'],'っゆ':['yyu'],'っよ':['yyo'],
-        'っら':['rra'],'っり':['rri'],'っる':['rru'],'っれ':['rre'],'っろ':['rro'],
-        'っわ':['wwa'],'っを':['wwo'],
-    };
-    Object.assign(baseKanaToRomaji, sokuonBase);
-    const consonants = [
-        {c:'k', kana:'か'},{c:'g', kana:'が'},{c:'s', kana:'さ'},{c:'z', kana:'ざ'},{c:'t', kana:'た'},{c:'d', kana:'だ'},
-        {c:'n', kana:'な'},{c:'h', kana:'は'},{c:'b', kana:'ば'},{c:'p', kana:'ぱ'},{c:'m', kana:'ま'},{c:'y', kana:'や'},
-        {c:'r', kana:'ら'},{c:'w', kana:'わ'},{c:'f', kana:'ふ'},{c:'ch', kana:'ち'},{c:'sh', kana:'し'},{c:'j', kana:'じ'},
-    ];
-    const smallChars = [
-        {char:'ゃ', roma:'ya'},{char:'ぃ', roma:'yi'},{char:'ゅ', roma:'yu'},{char:'ぇ', roma:'ye'},{char:'ょ', roma:'yo'},
-        {char:'ぁ', roma:'a'},{char:'ぅ', roma:'u'},{char:'ぉ', roma:'o'},
-    ];
-    const manual = {
-        'っふぁ':['ffa'],'っふぃ':['ffi'],'っふぇ':['ffe'],'っふぉ':['ffo'],
-        'ってゃ':['ttha'],'ってぃ':['tthi'],'ってゅ':['tthu'],'ってぇ':['tthe'],'ってょ':['ttho'],
-        'っでゃ':['ddha'],'っでぃ':['ddhi'],'っでゅ':['ddhu'],'っでぇ':['ddhe'],'っでょ':['ddho'],
-    };
-    Object.assign(baseKanaToRomaji, manual);
-    consonants.forEach(cons => {
-        smallChars.forEach(small => {
-            const kana = 'っ' + cons.kana + small.char, roma = cons.c + cons.c + small.roma;
-            if (!baseKanaToRomaji[kana]) baseKanaToRomaji[kana] = [roma];
-            else if (!baseKanaToRomaji[kana].includes(roma)) baseKanaToRomaji[kana].push(roma);
-        });
-    });
-    smallKanaList.forEach(s => {
-        const kana = 'っ' + s.kana, romas = [];
-        s.romas.forEach(r => {
-            if (r.startsWith('x')) { romas.push('ll' + r.substring(1)); romas.push('xx' + r.substring(1)); }
-            else if (r.startsWith('l')) { romas.push('ll' + r.substring(1)); romas.push('xx' + r.substring(1)); }
-        });
-        if (!baseKanaToRomaji[kana]) baseKanaToRomaji[kana] = [...new Set(romas)];
-        else romas.forEach(r => { if (!baseKanaToRomaji[kana].includes(r)) baseKanaToRomaji[kana].push(r); });
-    });
-    Object.assign(baseKanaToRomaji, {
-        'きゃ':['kya'],'きゅ':['kyu'],'きょ':['kyo'],'ぎゃ':['gya'],'ぎゅ':['gyu'],'ぎょ':['gyo'],
-        'しゃ':['sha','sya'],'しゅ':['shu','syu'],'しょ':['sho','syo'],'じゃ':['ja','zya'],'じゅ':['ju','zyu'],'じょ':['jo','zyo'],
-        'ちゃ':['cha','tya'],'ちゅ':['chu','tyu'],'ちょ':['cho','tyo'],'にゃ':['nya'],'にゅ':['nyu'],'にょ':['nyo'],
-        'ひゃ':['hya'],'ひゅ':['hyu'],'ひょ':['hyo'],'びゃ':['bya'],'びゅ':['byu'],'びょ':['byo'],
-        'ぴゃ':['pya'],'ぴゅ':['pyu'],'ぴょ':['pyo'],'みゃ':['mya'],'みゅ':['myu'],'みょ':['myo'],
-        'りゃ':['rya'],'りゅ':['ryu'],'りょ':['ryo'],'ふぁ':['fa'],'ふぃ':['fi'],'ふぇ':['fe'],'ふぉ':['fo'],
-        'てゃ':['tha'],'てぃ':['thi'],'てゅ':['thu'],'てぇ':['the'],'てょ':['tho'],'でゃ':['dha'],'でぃ':['dhi'],'でゅ':['dhu'],'でぇ':['dhe'],'でょ':['dho'],
-        'ちぃ':['cyi','chi'],'ぢぃ':['dyi','dhi'],'ちぇ':['che'],'ぢぇ':['je','dhe'],'ひぃ':['hyi','hi'],'びぃ':['byi','bi'],'ぴぃ':['pyi','pi'],
-        'ひぇ':['hye'],'びぇ':['bye'],'ぴぇ':['pye'],'にぃ':['nyi'],'にぇ':['nye'],'みぃ':['myi'],'みぇ':['mye'],
-        'りぃ':['ryi'],'りぇ':['rye'],'きぃ':['kyi'],'ぎぃ':['gyi'],'ぎぇ':['gye'],'きぇ':['kye'],
-        'しぃ':['syi','shi'],'じぃ':['zyi','ji'],'じぇ':['je','zye'],'しぇ':['she'],
-        '。':['.','ten',' '],'．':['.','ten',' '],'.':['.','ten',' '],'、':[','],'！':['!'],'？':['?'],
-    });
-    const kanaToRomaji = baseKanaToRomaji;
 
     // --- 問題データ（日本語） ---
     const problemData = {
@@ -292,45 +203,25 @@
         );
     }
 
-    function getGlobalVisibility() {
-        const val = localStorage.getItem('typing_global_visibility');
-        return val === null ? true : val === 'true';
-    }
+    function getGlobalVisibility() { const val = localStorage.getItem('typing_global_visibility'); return val === null ? true : val === 'true'; }
     function setGlobalVisibility(visible) {
         localStorage.setItem('typing_global_visibility', visible);
         els.globalVisibilityCheck.checked = visible;
         els.initialGlobalCheck.checked = visible;
     }
 
-    // ★ データ保存の三重構造
-    let _lastSavedEntry = null; // メモリへの最終フォールバック
     async function saveGlobalRanking(entry) {
-        _lastSavedEntry = entry; // メモリ保持 (フォールバック3)
+        if (!firebaseReady || !db) return;
         if (!getGlobalVisibility()) return;
-
-        // プライマリ: Firebase に保存
-        if (firebaseReady && db) {
-            try {
-                await addDoc(collection(db, 'rankings'), {
-                    displayName: entry.name, country: entry.country || '',
-                    score: entry.score, grade: entry.grade, lang: entry.lang,
-                    mode: entry.mode, type: entry.type, accuracy: entry.accuracy,
-                    kps: entry.kps, wpm: entry.wpm, elapsedSec: entry.elapsedSec,
-                    createdAt: serverTimestamp()
-                });
-                console.log('Firebase にスコアを保存しました');
-                return;
-            } catch (e) {
-                console.error('Firebase 保存エラー', e);
-            }
-        }
-
-        // セカンダリ: localStorage に別名で保存（復旧用）
         try {
-            const backup = JSON.parse(localStorage.getItem('typing_global_backup') || '[]');
-            backup.push(entry);
-            localStorage.setItem('typing_global_backup', JSON.stringify(backup.slice(-20)));
-        } catch (e) {}
+            await addDoc(collection(db, 'rankings'), {
+                displayName: entry.name, country: entry.country || '',
+                score: entry.score, grade: entry.grade, lang: entry.lang,
+                mode: entry.mode, type: entry.type, accuracy: entry.accuracy,
+                kps: entry.kps, wpm: entry.wpm, elapsedSec: entry.elapsedSec,
+                createdAt: serverTimestamp()
+            });
+        } catch (e) { console.warn('Firebase save error', e); }
     }
 
     async function loadGlobalRankings() {
@@ -372,36 +263,7 @@
         }
     }
 
-    // --- 「ん」の動的候補 (三重判定) ---
-    function getAcceptedForN(nextToken) {
-        // プライマリ: 次の文字で判定
-        const restrictPatterns = /^[あいうえおぁぃぅぇぉゃゅょゎなにぬねの]/;
-        if (!nextToken || restrictPatterns.test(nextToken)) return ['nn'];
-
-        // セカンダリ: 次の文字のローマ字先頭で再判定
-        if (nextToken) {
-            const nextRomas = kanaToRomaji[nextToken] || [];
-            if (nextRomas.length > 0 && 'aiueo'.includes(nextRomas[0][0])) return ['nn'];
-        }
-
-        // フォールバック: 子音なら両方許可
-        return ['nn', 'n'];
-    }
-
-    // 「ー」の動的候補生成 (三重構造)
-    function getAcceptedForChouon(prevToken) {
-        // プライマリ: 前の文字の母音を重ねる
-        if (prevToken) {
-            const prevCandidates = kanaToRomaji[prevToken] || [prevToken];
-            const lastChar = prevCandidates[0].slice(-1);
-            if ('aiueo'.includes(lastChar)) {
-                return [lastChar + lastChar, '-'];
-            }
-        }
-        // セカンダリ: ハイフンだけ
-        return ['-'];
-    }
-
+    // --- DOM要素 ---
     const $=s=>document.querySelector(s);
     const els = {
         settingsPanel:$('#settingsPanel'), gamePanel:$('#gamePanel'), resultPanel:$('#resultPanel'), rankingPanel:$('#rankingPanel'),
@@ -450,40 +312,39 @@
     els.themeBtn.addEventListener('click', () => { const isDark = !document.body.classList.contains('light'); setTheme(!isDark); });
 
     function toast(m,d=2200){const e=document.createElement('div');e.className='toast';e.textContent=m;els.toastContainer.appendChild(e);setTimeout(()=>e.remove(),d+400);}
-
     function showPanel(panelName){
         ['settingsPanel','gamePanel','resultPanel','rankingPanel','helpPanel'].forEach(k => { els[k].classList.add('hidden'); });
         if(panelName) els[panelName].classList.remove('hidden');
     }
 
+    // ========== ライブラリ利用 ==========
     const G = {
-        mode:'normal', problemType:'word', problemLang:'ja', difficulty:'intermediate', problems:[], currentProblemIndex:0,
-        tokens:[], tokenIndex:0, displayChars:[],
+        mode:'normal', problemType:'word', problemLang:'ja', difficulty:'intermediate',
+        problems:[], currentProblemIndex:0,
+        typingText: null,
+        displayChars: [],
+        readingToDisplayMap: [],
         score:0, combo:0, maxCombo:0, totalInputs:0, correctInputs:0, mistakes:0,
-        isPlaying:false, startTime:null, endTime:null, infiniteTimer:null, infiniteTimeLimit:4, infiniteTimeLeft:4,
+        isPlaying:false, startTime:null, endTime:null,
+        infiniteTimer:null, infiniteTimeLimit:4, infiniteTimeLeft:4,
         solvedCount:0, totalProblems:15,
-        tokenCandidates:[], tokenMatchStr:'',
-        leftLocked: true, completedRomaji: [],
+        leftLocked: true,
         optShowReading: true, optShowRomaji: true, optUseCharType: false,
-        countdownTimer: null, countdownBackupTimer: null, countdownForceTimer: null, // タイマー三重構造
-        countdownLeft: 3, isCountingDown: false, countdownPaused: false,
+        countdownTimer: null, countdownLeft: 3, isCountingDown: false, countdownPaused: false,
+        lastRomajiMatch: '',
     };
 
     function resetG(){
         clearInfiniteTimer(); clearCountdownTimer();
         Object.assign(G, {
-            tokens:[], tokenIndex:0, score:0, combo:0, maxCombo:0,
-            totalInputs:0, correctInputs:0, mistakes:0, isPlaying:false, startTime:null, solvedCount:0,
-            tokenCandidates:[], tokenMatchStr:'', leftLocked:true, completedRomaji: [],
+            typingText: null, displayChars:[], readingToDisplayMap:[],
+            score:0, combo:0, maxCombo:0, totalInputs:0, correctInputs:0, mistakes:0,
+            isPlaying:false, startTime:null, solvedCount:0, leftLocked:true,
             isCountingDown: false, countdownPaused: false, countdownLeft: 3
         });
     }
     function clearInfiniteTimer(){if(G.infiniteTimer){clearInterval(G.infiniteTimer);G.infiniteTimer=null;}}
-    function clearCountdownTimer(){
-        if(G.countdownTimer){clearInterval(G.countdownTimer);G.countdownTimer=null;}
-        if(G.countdownBackupTimer){clearInterval(G.countdownBackupTimer);G.countdownBackupTimer=null;}
-        if(G.countdownForceTimer){clearInterval(G.countdownForceTimer);G.countdownForceTimer=null;}
-    }
+    function clearCountdownTimer(){if(G.countdownTimer){clearInterval(G.countdownTimer);G.countdownTimer=null;}}
 
     function startInfiniteTimer(){
         clearInfiniteTimer(); G.infiniteTimeLeft=G.infiniteTimeLimit; updateTimerDisplay();
@@ -505,7 +366,6 @@
         els.speedIndicators.textContent=`${kps.toFixed(1)}打鍵/秒 | ${wpm} WPM`;
     }
 
-    // ★ カウントダウンの三重構造
     function startCountdown() {
         G.isCountingDown = true; G.countdownLeft = 3; G.countdownPaused = false;
         showPanel('gamePanel');
@@ -516,35 +376,13 @@
         els.countdownNumber.textContent = Math.ceil(G.countdownLeft);
         els.hiddenInput.focus();
         clearCountdownTimer();
-
-        // プライマリタイマー (100ms 間隔)
         G.countdownTimer = setInterval(() => {
             if (G.countdownPaused) return;
             G.countdownLeft -= 0.1;
             if (G.countdownLeft <= 0) { G.countdownLeft = 0; updateCountdownDisplay(); finishCountdown(); return; }
             updateCountdownDisplay();
         }, 100);
-
-        // バックアップタイマー (1秒間隔で強制同期)
-        G.countdownBackupTimer = setInterval(() => {
-            if (!G.isCountingDown) return;
-            const expectedLeft = 3 - ((Date.now() - (G._countdownStartTime || Date.now())) / 1000);
-            if (Math.abs(G.countdownLeft - expectedLeft) > 0.5) {
-                G.countdownLeft = Math.max(0, expectedLeft);
-                updateCountdownDisplay();
-                if (G.countdownLeft <= 0) { G.countdownLeft = 0; finishCountdown(); }
-            }
-        }, 1000);
-
-        // 強制タイマー (5秒後に強制開始)
-        G._countdownStartTime = Date.now();
-        G.countdownForceTimer = setTimeout(() => {
-            if (G.isCountingDown) {
-                finishCountdown();
-            }
-        }, 5000);
     }
-
     function updateCountdownDisplay() {
         const sec = Math.ceil(G.countdownLeft);
         els.countdownNumber.textContent = sec;
@@ -554,7 +392,6 @@
             els.countdownNumber.style.animation = 'countPulse 0.8s ease-in-out';
         }
     }
-
     function finishCountdown() {
         clearCountdownTimer(); G.isCountingDown = false;
         els.countdownOverlay.style.display = 'none';
@@ -605,126 +442,89 @@
         }
         const prob=G.problems[G.currentProblemIndex];
         G.displayChars=[...prob.display];
+
         if (G.problemLang === 'en') {
+            G.typingText = null;
             G.tokens = [...prob.display];
+            G.readingToDisplayMap = G.tokens.map((_,i) => i);
         } else {
-            G.tokens = [...prob.reading].reduce((acc,ch)=>{
-                if('ゃゅょャュョ'.includes(ch) && acc.length>0){ acc[acc.length-1] += ch; }
-                else { acc.push(ch); }
-                return acc;
-            }, []);
+            G.typingText = new TypingText(prob.reading, {
+                inputType: 'romaji',
+                autoCorrect: true,
+                ignoreCase: false
+            });
+            G.readingToDisplayMap = buildReadingToDisplayMap(prob.display, prob.reading);
         }
-        G.tokenIndex=0; G.leftLocked = true; G.completedRomaji = [];
-        resetTokenState(); renderAllLines(); updateProgressDisplay();
+        G.leftLocked = true;
+        G.lastRomajiMatch = '';
+        renderAllLines();
+        updateProgressDisplay();
     }
 
-    function resetTokenState(){
-        const token = G.tokens[G.tokenIndex] || '';
-        if (token === 'ん' && G.problemLang === 'ja') {
-            const nextToken = G.tokenIndex + 1 < G.tokens.length ? G.tokens[G.tokenIndex + 1] : null;
-            G.tokenCandidates = getAcceptedForN(nextToken);
-        } else if (token === 'ー' && G.problemLang === 'ja') {
-            const prevToken = G.tokenIndex > 0 ? G.tokens[G.tokenIndex - 1] : null;
-            G.tokenCandidates = getAcceptedForChouon(prevToken);
-        } else {
-            G.tokenCandidates = kanaToRomaji[token] || [token];
-        }
-        G.tokenMatchStr = '';
-    }
-
-    // ★ 漢字ブロックの三重構造
-    function getKanjiBlocks() {
-        // プライマリ方式: 連続漢字をグループ化
-        const blocks = [];
-        const displayChars = G.displayChars;
-        const tokens = G.tokens;
-        let ti = 0;
-        for (let di = 0; di < displayChars.length; di++) {
-            if (isKanji(displayChars[di])) {
-                let startDi = di;
-                let startTi = ti;
-                while (di < displayChars.length && isKanji(displayChars[di])) di++;
-                let endDi = di - 1;
-                let endTi = tokens.length - 1;
-                if (di < displayChars.length) {
-                    const nextChar = displayChars[di];
-                    for (let k = ti; k < tokens.length; k++) {
-                        if (tokens[k] === nextChar) { endTi = k - 1; break; }
-                    }
+    function buildReadingToDisplayMap(display, reading) {
+        const map = [];
+        const displayChars = [...display];
+        const readingChars = [...reading];
+        let di = 0, ri = 0;
+        while (ri < readingChars.length) {
+            if (di < displayChars.length && isKanji(displayChars[di])) {
+                while (di < displayChars.length && isKanji(displayChars[di])) {
+                    map[ri] = di;
+                    ri++;
                 }
-                blocks.push({ startDisplayIdx: startDi, endDisplayIdx: endDi, startTokenIdx: startTi, endTokenIdx: endTi });
-                ti = endTi + 1;
             } else {
-                ti++;
+                map[ri] = di;
+                ri++;
+                di++;
             }
         }
-
-        // セカンダリ: ブロックが空なら1文字ずつ再構築
-        if (blocks.length === 0 && displayChars.some(c => isKanji(c))) {
-            let ti2 = 0;
-            for (let di2 = 0; di2 < displayChars.length; di2++) {
-                if (isKanji(displayChars[di2])) {
-                    blocks.push({ startDisplayIdx: di2, endDisplayIdx: di2, startTokenIdx: ti2, endTokenIdx: Math.min(ti2, tokens.length-1) });
-                    ti2++;
-                } else {
-                    ti2++;
-                }
-            }
-        }
-        return blocks;
+        return map;
     }
-
-    function isKanjiCompleted(block) { return G.tokenIndex > block.endTokenIdx; }
 
     function renderAllLines(){
-        const displayChars = G.displayChars; const tokens = G.tokens;
-        const kanjiBlocks = G.problemLang === 'ja' ? getKanjiBlocks() : [];
-
-        let htmlDisplay = '';
-        for (let i=0; i<displayChars.length; i++) {
-            let cls = 'remaining';
-            if (G.problemLang === 'ja') {
-                const block = kanjiBlocks.find(b => i >= b.startDisplayIdx && i <= b.endDisplayIdx);
-                if (block) {
-                    if (isKanjiCompleted(block)) cls = 'correct';
-                    else if (G.tokenIndex >= block.startTokenIdx && G.tokenIndex <= block.endTokenIdx) cls = 'current';
+        const displayChars = G.displayChars;
+        if (G.typingText) {
+            const rawStates = G.typingText.getState();
+            const displayStates = new Array(displayChars.length).fill('remaining');
+            for (let i = 0; i < rawStates.length; i++) {
+                const di = G.readingToDisplayMap[i];
+                if (di !== undefined) {
+                    const s = rawStates[i].state;
+                    if (s === 'correct') displayStates[di] = 'correct';
+                    else if (s === 'current' && displayStates[di] !== 'correct') displayStates[di] = 'current';
                 }
-            } else {
+            }
+            let htmlDisplay = '';
+            for (let i = 0; i < displayChars.length; i++) {
+                htmlDisplay += `<span class="char ${displayStates[i]}">${escHtml(displayChars[i])}</span>`;
+            }
+            els.lineDisplay.innerHTML = htmlDisplay;
+
+            if (G.optShowReading) {
+                let htmlReading = '';
+                for (let i = 0; i < rawStates.length; i++) {
+                    const cls = rawStates[i].state;
+                    htmlReading += `<span class="char ${cls}">${escHtml(rawStates[i].char)}</span>`;
+                }
+                els.lineReading.innerHTML = htmlReading;
+            } else { els.lineReading.innerHTML = ''; }
+
+            if (G.optShowRomaji) {
+                els.lineRomaji.innerHTML = G.lastRomajiMatch ? `ローマ字: ${G.lastRomajiMatch}` : '';
+            } else { els.lineRomaji.innerHTML = ''; }
+        } else {
+            // 英語モードの簡易表示
+            let htmlDisplay = '';
+            for (let i = 0; i < displayChars.length; i++) {
+                let cls = 'remaining';
                 if (i < G.tokenIndex) cls = 'correct';
                 else if (i === G.tokenIndex) cls = 'current';
+                htmlDisplay += `<span class="char ${cls}">${escHtml(displayChars[i])}</span>`;
             }
-            htmlDisplay += `<span class="char ${cls}">${escHtml(displayChars[i])}</span>`;
+            els.lineDisplay.innerHTML = htmlDisplay;
+            els.lineReading.innerHTML = '';
+            els.lineRomaji.innerHTML = '';
         }
-        els.lineDisplay.innerHTML = htmlDisplay;
-
-        if (G.problemLang === 'ja' && G.optShowReading) {
-            let htmlReading = '';
-            for (let i=0; i<tokens.length; i++) {
-                let cls = (i<G.tokenIndex)?'correct':(i===G.tokenIndex)?'current':'remaining';
-                htmlReading += `<span class="char ${cls}">${escHtml(tokens[i])}</span>`;
-            }
-            els.lineReading.innerHTML = htmlReading;
-        } else { els.lineReading.innerHTML = ''; }
-
-        if (G.problemLang === 'ja' && G.optShowRomaji) {
-            let htmlRomaji = '';
-            for (let i=0; i<tokens.length; i++) {
-                const token = tokens[i];
-                let roma = (i < G.tokenIndex) ? (G.completedRomaji[i] || (kanaToRomaji[token]?.[0]||token))
-                        : (i === G.tokenIndex) ? (G.tokenCandidates[0]||token)
-                        : (kanaToRomaji[token]?.[0]||token);
-                for (let j=0; j<roma.length; j++) {
-                    let cls = 'remaining';
-                    if (i < G.tokenIndex) cls = 'correct';
-                    else if (i === G.tokenIndex) {
-                        if (j < G.tokenMatchStr.length) cls = 'correct';
-                        else if (j === G.tokenMatchStr.length) cls = 'current';
-                    }
-                    htmlRomaji += `<span class="char ${cls}">${escHtml(roma[j])}</span>`;
-                }
-            }
-            els.lineRomaji.innerHTML = htmlRomaji;
-        } else { els.lineRomaji.innerHTML = ''; }
 
         const currentSpan = els.lineDisplay.querySelector('.char.current');
         if (currentSpan) {
@@ -771,100 +571,82 @@
         e.preventDefault();
         if(key.length > 1 && key !== 'Backspace') return;
         if(key === 'Backspace'){
-            if(G.tokenMatchStr.length > 0){
-                G.tokenMatchStr = G.tokenMatchStr.slice(0, -1);
-                G.tokenCandidates = (kanaToRomaji[G.tokens[G.tokenIndex]]||[]).filter(c=>c.startsWith(G.tokenMatchStr));
-                if (G.tokenMatchStr.length === 0 && G.tokens[G.tokenIndex] === 'ん') {
-                    const nextToken = G.tokenIndex + 1 < G.tokens.length ? G.tokens[G.tokenIndex + 1] : null;
-                    G.tokenCandidates = getAcceptedForN(nextToken);
-                }
+            if (G.typingText) {
+                // ライブラリはバックスペース非対応のため、ここでは何もしない
+                // 必要に応じて自前で状態を戻す処理を追加可能
             }
-            updateInputFeedback(); renderAllLines();
             return;
         }
-        if(/^[a-zA-Z]$/.test(key)) processCharInput(key.toLowerCase());
-    });
-
-    function processCharInput(char){
-        if(G.tokenIndex >= G.tokens.length){ advanceToNextProblem(); return; }
-        if (G.problemLang === 'ja' && G.tokens[G.tokenIndex] === 'ん' && G.tokenMatchStr === 'n') {
-            if (G.tokenCandidates.includes('n')) {
-                const nextTokenIdx = G.tokenIndex + 1;
-                if (nextTokenIdx < G.tokens.length) {
-                    const nextToken = G.tokens[nextTokenIdx];
-                    const nextCandidates = kanaToRomaji[nextToken] || [nextToken];
-                    const nextFirstChars = new Set(nextCandidates.map(c => c[0]));
-                    if (nextFirstChars.has(char)) {
-                        G.completedRomaji[G.tokenIndex] = 'n';
-                        G.tokenIndex++;
-                        resetTokenState();
-                        processCharInput(char);
-                        return;
-                    }
+        if(/^[a-zA-Z]$/.test(key)){
+            if (G.typingText) {
+                const result = G.typingText.input(key);
+                if (result.isCorrect) {
+                    G.totalInputs++; G.correctInputs++; G.combo++;
+                    if(G.combo > G.maxCombo) G.maxCombo = G.combo;
+                    const comboMult = calcComboMultiplier(G.combo);
+                    const charMult = getCharTypeMultiplier(G.problems[G.currentProblemIndex].display, G.optUseCharType, G.optShowRomaji, G.optShowReading);
+                    G.score += 2 * comboMult * charMult;
+                    G.lastRomajiMatch = result.matched || '';
+                    if (result.isComplete) advanceToNextProblem();
+                    els.inputFeedback.textContent = '✅ ' + key;
+                    els.inputFeedback.style.color = 'var(--correct)';
+                    setTimeout(()=>{ if(G.isPlaying) els.inputFeedback.style.color='var(--text2)'; }, 300);
+                } else {
+                    G.totalInputs++; G.mistakes++; G.combo = 0;
+                    G.score = Math.max(0, G.score - 1);
+                    G.lastRomajiMatch = '';
+                    els.inputFeedback.textContent = '❌ ミス！';
+                    els.inputFeedback.classList.add('error-flash');
+                    els.inputFeedback.style.color = 'var(--error)';
+                    setTimeout(()=>{ if(G.isPlaying){ els.inputFeedback.classList.remove('error-flash'); els.inputFeedback.style.color='var(--text2)'; } }, 400);
                 }
+                updateStatsDisplay();
+                renderAllLines();
+                if(G.mode==='infinite') resetInfiniteTimer();
+            } else {
+                // 英語モード
+                processCharInputEn(key);
             }
         }
+    });
 
+    function processCharInputEn(char){
+        if(G.tokenIndex >= G.tokens.length){ advanceToNextProblem(); return; }
         const token = G.tokens[G.tokenIndex];
-        const candidates = G.tokenCandidates;
-        const nextChars = new Set(candidates.map(c=>c[G.tokenMatchStr.length]));
-        if(nextChars.has(char)){
+        if (char === token[G.tokenMatchStr ? G.tokenMatchStr.length : 0]) {
             G.tokenMatchStr += char;
             G.totalInputs++; G.correctInputs++; G.combo++;
             if(G.combo > G.maxCombo) G.maxCombo = G.combo;
             const comboMult = calcComboMultiplier(G.combo);
             const charMult = getCharTypeMultiplier(G.problems[G.currentProblemIndex].display, G.optUseCharType, G.optShowRomaji, G.optShowReading);
             G.score += 2 * comboMult * charMult;
-            G.tokenCandidates = candidates.filter(c=>c.startsWith(G.tokenMatchStr));
-            if(G.tokenCandidates.includes(G.tokenMatchStr)){
-                if (G.problemLang === 'ja' && token === 'ん' && G.tokenMatchStr === 'n' && G.tokenCandidates.includes('nn')) {
-                    // まだ完了しない
-                } else {
-                    G.completedRomaji[G.tokenIndex] = G.tokenMatchStr;
-                    G.tokenIndex++;
-                    if(G.tokenIndex < G.tokens.length) resetTokenState();
-                    if(G.tokenIndex >= G.tokens.length) advanceToNextProblem();
-                }
+            if (G.tokenMatchStr === token) {
+                G.completedRomaji[G.tokenIndex] = token;
+                G.tokenIndex++;
+                G.tokenMatchStr = '';
+                if (G.tokenIndex >= G.tokens.length) advanceToNextProblem();
             }
             els.inputFeedback.textContent = '✅ ' + char;
             els.inputFeedback.style.color = 'var(--correct)';
             setTimeout(()=>{ if(G.isPlaying) els.inputFeedback.style.color='var(--text2)'; }, 300);
-            renderAllLines(); updateStatsDisplay();
-            if(G.mode==='infinite') resetInfiniteTimer();
         } else {
             G.totalInputs++; G.mistakes++; G.combo = 0;
             G.score = Math.max(0, G.score - 1);
-            G.tokenMatchStr = ''; G.tokenCandidates = kanaToRomaji[token] || [token];
-            updateStatsDisplay();
+            G.tokenMatchStr = '';
             els.inputFeedback.textContent = '❌ ミス！';
-            els.inputFeedback.classList.add('error-flash'); els.inputFeedback.style.color = 'var(--error)';
+            els.inputFeedback.classList.add('error-flash');
+            els.inputFeedback.style.color = 'var(--error)';
             setTimeout(()=>{ if(G.isPlaying){ els.inputFeedback.classList.remove('error-flash'); els.inputFeedback.style.color='var(--text2)'; } }, 400);
-            els.problemFrame.style.transform = 'translateX(-4px)';
-            setTimeout(()=>{ els.problemFrame.style.transform = 'translateX(4px)'; }, 80);
-            setTimeout(()=>{ els.problemFrame.style.transform = ''; }, 160);
-            renderAllLines();
         }
+        updateStatsDisplay();
+        renderAllLines();
+        if(G.mode==='infinite') resetInfiniteTimer();
     }
 
-    function updateInputFeedback(){
-        els.inputFeedback.textContent = G.tokenMatchStr.length ? '入力中: ' + G.tokenMatchStr : 'ローマ字を入力...';
-    }
-
-    // ★ 問題進行の三重構造
     function advanceToNextProblem(){
-        // プライマリ: 通常進行
         G.currentProblemIndex++; G.solvedCount++;
         if(G.mode==='normal' && G.currentProblemIndex>=G.totalProblems){ endGame('complete'); return; }
-
-        // セカンダリ: 問題読み込みの安全チェック
-        try {
-            loadCurrentProblem();
-        } catch (e) {
-            // フォールバック: 問題を強制追加して再試行
-            G.problems.push(...getProblemsForGame(G.problemType, 5, G.problemLang));
-            loadCurrentProblem();
-        }
-
+        loadCurrentProblem();
         els.inputFeedback.textContent = '🎉 次の問題へ！'; els.inputFeedback.style.color = 'var(--accent2)';
         setTimeout(()=>{ if(G.isPlaying) els.inputFeedback.style.color='var(--text2)'; }, 500);
         els.hiddenInput.value = ''; els.hiddenInput.focus();
