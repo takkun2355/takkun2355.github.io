@@ -29,3 +29,32 @@ context. Vary between light and dark themes, different fonts, different aestheti
 still tend to converge on common choices (Space Grotesk, for example) across
 generations. Avoid this: it is critical that you think outside the box!
 </frontend_aesthetics>
+<architecture_rules>
+
+Prefer boring solutions.
+
+When multiple implementations are possible:
+
+1. Simpler code wins.
+2. Fewer files wins.
+3. Less abstraction wins.
+4. Existing patterns win.
+
+Do not create components unless:
+
+* The same UI appears 3+ times, or
+* The component meaningfully reduces complexity.
+
+Do not introduce:
+
+* Complex state management
+* Service layers
+* Manager classes
+* Repository patterns
+* Enterprise architecture
+
+This is a small-to-medium sized hobby project.
+
+Optimize for readability and iteration speed.
+
+</architecture_rules>
