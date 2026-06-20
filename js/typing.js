@@ -17,8 +17,12 @@
         const app = initializeApp(firebaseConfig);
         initializeAppCheck(app, { provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY), isTokenAutoRefreshEnabled: true });
         db = getFirestore(app); auth = getAuth(app);
-        await signInAnonymously(auth); firebaseReady = true;
-    } catch (e) { console.warn('Firebase 初期化失敗（ローカルのみ動作）', e); }
+        await signInAnonymously(auth);
+        firebaseReady = true;
+        console.log('Firebase: 匿名認証に成功しました');
+    } catch (e) {
+        console.error('Firebase 初期化失敗（グローバルランキングは利用できません）', e);
+    }
 
     // --- 半角変換 ---
     function toHalfWidth(str) { return str.replace(/\u3000/g, ' ').replace(/[\uff01-\uff5e]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)); }
@@ -41,6 +45,7 @@
         'ら':['ra'],'り':['ri'],'る':['ru'],'れ':['re'],'ろ':['ro'],
         'わ':['wa'],'を':['wo'],
         'ん':['nn','xn'],
+        'ー':['-'], // 長音符はハイフンで入力可能にする
     };
     const smallKanaList = [
         {kana:'ぁ', romas:['xa','la']},{kana:'ぃ', romas:['xi','li']},{kana:'ぅ', romas:['xu','lu']},{kana:'ぇ', romas:['xe','le']},
@@ -205,16 +210,13 @@
     function getAllProblems(){ return Object.values(problemData).flat(); }
     function shuffleArray(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
-    // --- 英語フォールバック ---
     const fallbackEnglishWords = [
-        {display:'apple',reading:'apple'},{display:'book',reading:'book'},{display:'cat',reading:'cat'},
-        {display:'dog',reading:'dog'},{display:'egg',reading:'egg'},{display:'flower',reading:'flower'},
-        {display:'garden',reading:'garden'},{display:'house',reading:'house'},{display:'ice',reading:'ice'},
-        {display:'jungle',reading:'jungle'},{display:'key',reading:'key'},{display:'lion',reading:'lion'},
-        {display:'moon',reading:'moon'},{display:'night',reading:'night'},{display:'ocean',reading:'ocean'},
-        {display:'pencil',reading:'pencil'},{display:'queen',reading:'queen'},{display:'rain',reading:'rain'},
-        {display:'sun',reading:'sun'},{display:'tree',reading:'tree'},{display:'umbrella',reading:'umbrella'},
-        {display:'village',reading:'village'},{display:'water',reading:'water'},{display:'xylophone',reading:'xylophone'},
+        {display:'apple',reading:'apple'},{display:'book',reading:'book'},{display:'cat',reading:'cat'},{display:'dog',reading:'dog'},
+        {display:'egg',reading:'egg'},{display:'flower',reading:'flower'},{display:'garden',reading:'garden'},{display:'house',reading:'house'},
+        {display:'ice',reading:'ice'},{display:'jungle',reading:'jungle'},{display:'key',reading:'key'},{display:'lion',reading:'lion'},
+        {display:'moon',reading:'moon'},{display:'night',reading:'night'},{display:'ocean',reading:'ocean'},{display:'pencil',reading:'pencil'},
+        {display:'queen',reading:'queen'},{display:'rain',reading:'rain'},{display:'sun',reading:'sun'},{display:'tree',reading:'tree'},
+        {display:'umbrella',reading:'umbrella'},{display:'village',reading:'village'},{display:'water',reading:'water'},{display:'xylophone',reading:'xylophone'},
         {display:'yellow',reading:'yellow'},{display:'zebra',reading:'zebra'}
     ];
 
@@ -250,11 +252,7 @@
         if (optShowReading) return 1.15;
         return 1.5;
     }
-    function getCharTypeLabel(mult) {
-        if (mult >= 1.5) return '高補正';
-        if (mult >= 1.15) return '軽補正';
-        return '補正なし';
-    }
+    function getCharTypeLabel(mult) { if (mult >= 1.5) return '高補正'; if (mult >= 1.15) return '軽補正'; return '補正なし'; }
 
     function calcComboMultiplier(c){ return Math.min(1.5, 1+c*0.02); }
     function calcSpeedMultiplier(kps){ if(kps>=6)return 2.2; if(kps>=5)return 1.8; if(kps>=4)return 1.5; if(kps>=3)return 1.2; if(kps>=2)return 1.0; if(kps>=1)return 0.85; return 0.7; }
@@ -278,12 +276,11 @@
         }
     }
 
-    const RK='typing_rank_final_v4';
+    const RK='typing_rank_final_v6';
     function loadLocalRankings(){try{return JSON.parse(localStorage.getItem(RK))||[];}catch{return[];}}
     function saveLocalRanking(entry){
         const r=loadLocalRankings();
-        r.push(entry);
-        r.sort((a,b)=>b.score-a.score);
+        r.push(entry); r.sort((a,b)=>b.score-a.score);
         localStorage.setItem(RK,JSON.stringify(r.slice(0,50)));
     }
     function clearLocalRankings(){localStorage.removeItem(RK);}
@@ -295,7 +292,6 @@
         );
     }
 
-    // --- グローバル表示設定 ---
     function getGlobalVisibility() {
         const val = localStorage.getItem('typing_global_visibility');
         return val === null ? true : val === 'true';
@@ -306,25 +302,35 @@
         els.initialGlobalCheck.checked = visible;
     }
 
+    // ★ データ保存の三重構造
+    let _lastSavedEntry = null; // メモリへの最終フォールバック
     async function saveGlobalRanking(entry) {
-        if (!firebaseReady || !db) return;
+        _lastSavedEntry = entry; // メモリ保持 (フォールバック3)
         if (!getGlobalVisibility()) return;
+
+        // プライマリ: Firebase に保存
+        if (firebaseReady && db) {
+            try {
+                await addDoc(collection(db, 'rankings'), {
+                    displayName: entry.name, country: entry.country || '',
+                    score: entry.score, grade: entry.grade, lang: entry.lang,
+                    mode: entry.mode, type: entry.type, accuracy: entry.accuracy,
+                    kps: entry.kps, wpm: entry.wpm, elapsedSec: entry.elapsedSec,
+                    createdAt: serverTimestamp()
+                });
+                console.log('Firebase にスコアを保存しました');
+                return;
+            } catch (e) {
+                console.error('Firebase 保存エラー', e);
+            }
+        }
+
+        // セカンダリ: localStorage に別名で保存（復旧用）
         try {
-            await addDoc(collection(db, 'rankings'), {
-                displayName: entry.name,
-                country: entry.country || '',
-                score: entry.score,
-                grade: entry.grade,
-                lang: entry.lang,
-                mode: entry.mode,
-                type: entry.type,
-                accuracy: entry.accuracy,
-                kps: entry.kps,
-                wpm: entry.wpm,
-                elapsedSec: entry.elapsedSec,
-                createdAt: serverTimestamp()
-            });
-        } catch (e) { console.warn('Firebase 保存エラー', e); }
+            const backup = JSON.parse(localStorage.getItem('typing_global_backup') || '[]');
+            backup.push(entry);
+            localStorage.setItem('typing_global_backup', JSON.stringify(backup.slice(-20)));
+        } catch (e) {}
     }
 
     async function loadGlobalRankings() {
@@ -336,17 +342,10 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 results.push({
-                    name: data.displayName,
-                    country: data.country || '',
-                    score: data.score,
-                    grade: data.grade,
-                    lang: data.lang || 'ja',
-                    mode: data.mode,
-                    type: data.type,
-                    accuracy: data.accuracy,
-                    kps: data.kps,
-                    wpm: data.wpm,
-                    elapsedSec: data.elapsedSec,
+                    name: data.displayName, country: data.country || '',
+                    score: data.score, grade: data.grade, lang: data.lang || 'ja',
+                    mode: data.mode, type: data.type, accuracy: data.accuracy,
+                    kps: data.kps, wpm: data.wpm, elapsedSec: data.elapsedSec,
                     date: data.createdAt ? data.createdAt.toDate().toISOString() : null
                 });
             });
@@ -373,11 +372,34 @@
         }
     }
 
-    // --- 「ん」の動的候補 ---
+    // --- 「ん」の動的候補 (三重判定) ---
     function getAcceptedForN(nextToken) {
+        // プライマリ: 次の文字で判定
         const restrictPatterns = /^[あいうえおぁぃぅぇぉゃゅょゎなにぬねの]/;
         if (!nextToken || restrictPatterns.test(nextToken)) return ['nn'];
+
+        // セカンダリ: 次の文字のローマ字先頭で再判定
+        if (nextToken) {
+            const nextRomas = kanaToRomaji[nextToken] || [];
+            if (nextRomas.length > 0 && 'aiueo'.includes(nextRomas[0][0])) return ['nn'];
+        }
+
+        // フォールバック: 子音なら両方許可
         return ['nn', 'n'];
+    }
+
+    // 「ー」の動的候補生成 (三重構造)
+    function getAcceptedForChouon(prevToken) {
+        // プライマリ: 前の文字の母音を重ねる
+        if (prevToken) {
+            const prevCandidates = kanaToRomaji[prevToken] || [prevToken];
+            const lastChar = prevCandidates[0].slice(-1);
+            if ('aiueo'.includes(lastChar)) {
+                return [lastChar + lastChar, '-'];
+            }
+        }
+        // セカンダリ: ハイフンだけ
+        return ['-'];
     }
 
     const $=s=>document.querySelector(s);
@@ -419,17 +441,13 @@
     });
 
     function setTheme(isDark) {
-        if (isDark) { document.body.classList.remove('light'); }
-        else { document.body.classList.add('light'); }
+        if (isDark) { document.body.classList.remove('light'); } else { document.body.classList.add('light'); }
         els.themeBtn.textContent = isDark ? '🌙' : '☀️';
         localStorage.setItem('typingDarkMode', isDark ? 'true' : 'false');
     }
     const savedDark = localStorage.getItem('typingDarkMode');
     if (savedDark === null) { setTheme(true); } else { setTheme(savedDark === 'true'); }
-    els.themeBtn.addEventListener('click', () => {
-        const isDark = !document.body.classList.contains('light');
-        setTheme(!isDark);
-    });
+    els.themeBtn.addEventListener('click', () => { const isDark = !document.body.classList.contains('light'); setTheme(!isDark); });
 
     function toast(m,d=2200){const e=document.createElement('div');e.className='toast';e.textContent=m;els.toastContainer.appendChild(e);setTimeout(()=>e.remove(),d+400);}
 
@@ -447,7 +465,8 @@
         tokenCandidates:[], tokenMatchStr:'',
         leftLocked: true, completedRomaji: [],
         optShowReading: true, optShowRomaji: true, optUseCharType: false,
-        countdownTimer: null, countdownLeft: 3, isCountingDown: false, countdownPaused: false,
+        countdownTimer: null, countdownBackupTimer: null, countdownForceTimer: null, // タイマー三重構造
+        countdownLeft: 3, isCountingDown: false, countdownPaused: false,
     };
 
     function resetG(){
@@ -460,7 +479,11 @@
         });
     }
     function clearInfiniteTimer(){if(G.infiniteTimer){clearInterval(G.infiniteTimer);G.infiniteTimer=null;}}
-    function clearCountdownTimer(){if(G.countdownTimer){clearInterval(G.countdownTimer);G.countdownTimer=null;}}
+    function clearCountdownTimer(){
+        if(G.countdownTimer){clearInterval(G.countdownTimer);G.countdownTimer=null;}
+        if(G.countdownBackupTimer){clearInterval(G.countdownBackupTimer);G.countdownBackupTimer=null;}
+        if(G.countdownForceTimer){clearInterval(G.countdownForceTimer);G.countdownForceTimer=null;}
+    }
 
     function startInfiniteTimer(){
         clearInfiniteTimer(); G.infiniteTimeLeft=G.infiniteTimeLimit; updateTimerDisplay();
@@ -482,6 +505,7 @@
         els.speedIndicators.textContent=`${kps.toFixed(1)}打鍵/秒 | ${wpm} WPM`;
     }
 
+    // ★ カウントダウンの三重構造
     function startCountdown() {
         G.isCountingDown = true; G.countdownLeft = 3; G.countdownPaused = false;
         showPanel('gamePanel');
@@ -492,13 +516,35 @@
         els.countdownNumber.textContent = Math.ceil(G.countdownLeft);
         els.hiddenInput.focus();
         clearCountdownTimer();
+
+        // プライマリタイマー (100ms 間隔)
         G.countdownTimer = setInterval(() => {
             if (G.countdownPaused) return;
             G.countdownLeft -= 0.1;
             if (G.countdownLeft <= 0) { G.countdownLeft = 0; updateCountdownDisplay(); finishCountdown(); return; }
             updateCountdownDisplay();
         }, 100);
+
+        // バックアップタイマー (1秒間隔で強制同期)
+        G.countdownBackupTimer = setInterval(() => {
+            if (!G.isCountingDown) return;
+            const expectedLeft = 3 - ((Date.now() - (G._countdownStartTime || Date.now())) / 1000);
+            if (Math.abs(G.countdownLeft - expectedLeft) > 0.5) {
+                G.countdownLeft = Math.max(0, expectedLeft);
+                updateCountdownDisplay();
+                if (G.countdownLeft <= 0) { G.countdownLeft = 0; finishCountdown(); }
+            }
+        }, 1000);
+
+        // 強制タイマー (5秒後に強制開始)
+        G._countdownStartTime = Date.now();
+        G.countdownForceTimer = setTimeout(() => {
+            if (G.isCountingDown) {
+                finishCountdown();
+            }
+        }, 5000);
     }
+
     function updateCountdownDisplay() {
         const sec = Math.ceil(G.countdownLeft);
         els.countdownNumber.textContent = sec;
@@ -508,6 +554,7 @@
             els.countdownNumber.style.animation = 'countPulse 0.8s ease-in-out';
         }
     }
+
     function finishCountdown() {
         clearCountdownTimer(); G.isCountingDown = false;
         els.countdownOverlay.style.display = 'none';
@@ -520,13 +567,10 @@
         G.currentProblemIndex=0; G.solvedCount=0;
         G.isPlaying=true; G.startTime=Date.now();
         if (G.problemLang === 'en') {
-            els.lineReading.classList.add('hidden');
-            els.lineRomaji.classList.add('hidden');
+            els.lineReading.classList.add('hidden'); els.lineRomaji.classList.add('hidden');
         } else {
-            if (G.optShowReading) els.lineReading.classList.remove('hidden');
-            else els.lineReading.classList.add('hidden');
-            if (G.optShowRomaji) els.lineRomaji.classList.remove('hidden');
-            else els.lineRomaji.classList.add('hidden');
+            if (G.optShowReading) els.lineReading.classList.remove('hidden'); else els.lineReading.classList.add('hidden');
+            if (G.optShowRomaji) els.lineRomaji.classList.remove('hidden'); else els.lineRomaji.classList.add('hidden');
         }
         loadCurrentProblem(); updateStatsDisplay();
         els.hiddenInput.value=''; els.hiddenInput.focus(); els.inputFeedback.textContent='ここにローマ字を入力してください';
@@ -579,36 +623,52 @@
         if (token === 'ん' && G.problemLang === 'ja') {
             const nextToken = G.tokenIndex + 1 < G.tokens.length ? G.tokens[G.tokenIndex + 1] : null;
             G.tokenCandidates = getAcceptedForN(nextToken);
+        } else if (token === 'ー' && G.problemLang === 'ja') {
+            const prevToken = G.tokenIndex > 0 ? G.tokens[G.tokenIndex - 1] : null;
+            G.tokenCandidates = getAcceptedForChouon(prevToken);
         } else {
             G.tokenCandidates = kanaToRomaji[token] || [token];
         }
         G.tokenMatchStr = '';
     }
 
+    // ★ 漢字ブロックの三重構造
     function getKanjiBlocks() {
-        const blocks = []; const displayChars = G.displayChars; const tokens = G.tokens;
+        // プライマリ方式: 連続漢字をグループ化
+        const blocks = [];
+        const displayChars = G.displayChars;
+        const tokens = G.tokens;
         let ti = 0;
         for (let di = 0; di < displayChars.length; di++) {
             if (isKanji(displayChars[di])) {
-                let startTi = ti, endTi = ti;
-                if (di + 1 < displayChars.length) {
-                    const nextChar = displayChars[di+1];
-                    if (!isKanji(nextChar)) {
-                        for (let k=ti; k<tokens.length; k++) {
-                            if (tokens[k] === nextChar || k === tokens.length-1) { endTi = k; break; }
-                        }
-                    } else {
-                        for (let k=ti; k<tokens.length; k++) {
-                            if (k>ti && tokens[k] === displayChars[di+1]) { endTi = k-1; break; }
-                            if (k === tokens.length-1) endTi = k;
-                        }
+                let startDi = di;
+                let startTi = ti;
+                while (di < displayChars.length && isKanji(displayChars[di])) di++;
+                let endDi = di - 1;
+                let endTi = tokens.length - 1;
+                if (di < displayChars.length) {
+                    const nextChar = displayChars[di];
+                    for (let k = ti; k < tokens.length; k++) {
+                        if (tokens[k] === nextChar) { endTi = k - 1; break; }
                     }
-                } else endTi = tokens.length-1;
-                blocks.push({ startDisplayIdx: di, endDisplayIdx: di, startTokenIdx: startTi, endTokenIdx: endTi });
+                }
+                blocks.push({ startDisplayIdx: startDi, endDisplayIdx: endDi, startTokenIdx: startTi, endTokenIdx: endTi });
                 ti = endTi + 1;
             } else {
-                blocks.push({ startDisplayIdx: di, endDisplayIdx: di, startTokenIdx: ti, endTokenIdx: ti });
                 ti++;
+            }
+        }
+
+        // セカンダリ: ブロックが空なら1文字ずつ再構築
+        if (blocks.length === 0 && displayChars.some(c => isKanji(c))) {
+            let ti2 = 0;
+            for (let di2 = 0; di2 < displayChars.length; di2++) {
+                if (isKanji(displayChars[di2])) {
+                    blocks.push({ startDisplayIdx: di2, endDisplayIdx: di2, startTokenIdx: ti2, endTokenIdx: Math.min(ti2, tokens.length-1) });
+                    ti2++;
+                } else {
+                    ti2++;
+                }
             }
         }
         return blocks;
@@ -714,6 +774,10 @@
             if(G.tokenMatchStr.length > 0){
                 G.tokenMatchStr = G.tokenMatchStr.slice(0, -1);
                 G.tokenCandidates = (kanaToRomaji[G.tokens[G.tokenIndex]]||[]).filter(c=>c.startsWith(G.tokenMatchStr));
+                if (G.tokenMatchStr.length === 0 && G.tokens[G.tokenIndex] === 'ん') {
+                    const nextToken = G.tokenIndex + 1 < G.tokens.length ? G.tokens[G.tokenIndex + 1] : null;
+                    G.tokenCandidates = getAcceptedForN(nextToken);
+                }
             }
             updateInputFeedback(); renderAllLines();
             return;
@@ -723,6 +787,24 @@
 
     function processCharInput(char){
         if(G.tokenIndex >= G.tokens.length){ advanceToNextProblem(); return; }
+        if (G.problemLang === 'ja' && G.tokens[G.tokenIndex] === 'ん' && G.tokenMatchStr === 'n') {
+            if (G.tokenCandidates.includes('n')) {
+                const nextTokenIdx = G.tokenIndex + 1;
+                if (nextTokenIdx < G.tokens.length) {
+                    const nextToken = G.tokens[nextTokenIdx];
+                    const nextCandidates = kanaToRomaji[nextToken] || [nextToken];
+                    const nextFirstChars = new Set(nextCandidates.map(c => c[0]));
+                    if (nextFirstChars.has(char)) {
+                        G.completedRomaji[G.tokenIndex] = 'n';
+                        G.tokenIndex++;
+                        resetTokenState();
+                        processCharInput(char);
+                        return;
+                    }
+                }
+            }
+        }
+
         const token = G.tokens[G.tokenIndex];
         const candidates = G.tokenCandidates;
         const nextChars = new Set(candidates.map(c=>c[G.tokenMatchStr.length]));
@@ -735,10 +817,14 @@
             G.score += 2 * comboMult * charMult;
             G.tokenCandidates = candidates.filter(c=>c.startsWith(G.tokenMatchStr));
             if(G.tokenCandidates.includes(G.tokenMatchStr)){
-                G.completedRomaji[G.tokenIndex] = G.tokenMatchStr;
-                G.tokenIndex++;
-                if(G.tokenIndex < G.tokens.length) resetTokenState();
-                if(G.tokenIndex >= G.tokens.length) advanceToNextProblem();
+                if (G.problemLang === 'ja' && token === 'ん' && G.tokenMatchStr === 'n' && G.tokenCandidates.includes('nn')) {
+                    // まだ完了しない
+                } else {
+                    G.completedRomaji[G.tokenIndex] = G.tokenMatchStr;
+                    G.tokenIndex++;
+                    if(G.tokenIndex < G.tokens.length) resetTokenState();
+                    if(G.tokenIndex >= G.tokens.length) advanceToNextProblem();
+                }
             }
             els.inputFeedback.textContent = '✅ ' + char;
             els.inputFeedback.style.color = 'var(--correct)';
@@ -764,10 +850,21 @@
         els.inputFeedback.textContent = G.tokenMatchStr.length ? '入力中: ' + G.tokenMatchStr : 'ローマ字を入力...';
     }
 
+    // ★ 問題進行の三重構造
     function advanceToNextProblem(){
+        // プライマリ: 通常進行
         G.currentProblemIndex++; G.solvedCount++;
         if(G.mode==='normal' && G.currentProblemIndex>=G.totalProblems){ endGame('complete'); return; }
-        loadCurrentProblem();
+
+        // セカンダリ: 問題読み込みの安全チェック
+        try {
+            loadCurrentProblem();
+        } catch (e) {
+            // フォールバック: 問題を強制追加して再試行
+            G.problems.push(...getProblemsForGame(G.problemType, 5, G.problemLang));
+            loadCurrentProblem();
+        }
+
         els.inputFeedback.textContent = '🎉 次の問題へ！'; els.inputFeedback.style.color = 'var(--accent2)';
         setTimeout(()=>{ if(G.isPlaying) els.inputFeedback.style.color='var(--text2)'; }, 500);
         els.hiddenInput.value = ''; els.hiddenInput.focus();
@@ -866,8 +963,14 @@
     els.rankingTabGlobal.addEventListener('click', () => renderRankingTable('global'));
 
     els.headerUserInfoBtn.addEventListener('click', () => {
-        els.globalVisibilityCheck.checked = getGlobalVisibility();
-        els.visibilitySettingsOverlay.classList.remove('hidden');
+        const { name, country } = getUserInfo();
+        if (!name || !country) {
+            els.initialGlobalCheck.checked = getGlobalVisibility();
+            els.namePromptOverlay.classList.remove('hidden');
+        } else {
+            els.globalVisibilityCheck.checked = getGlobalVisibility();
+            els.visibilitySettingsOverlay.classList.remove('hidden');
+        }
     });
     els.closeVisibilityBtn.addEventListener('click', () => { els.visibilitySettingsOverlay.classList.add('hidden'); });
     els.saveVisibilityBtn.addEventListener('click', () => {
@@ -881,7 +984,10 @@
         if (!name || !country) {
             els.initialGlobalCheck.checked = getGlobalVisibility();
             els.namePromptOverlay.classList.remove('hidden');
-        } else { els.namePromptOverlay.classList.add('hidden'); updateHeaderUserInfo(); }
+        } else {
+            els.namePromptOverlay.classList.add('hidden');
+            updateHeaderUserInfo();
+        }
     }
     els.confirmNameBtn.addEventListener('click', () => {
         const name = els.userNameInput.value.trim();
