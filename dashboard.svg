@@ -21,15 +21,12 @@
     <!-- 名前など -->
     <text x="120" y="190" text-anchor="middle" fill="#ffffff" font-size="28" font-weight="bold">Taketo Yamamoto</text>
     <text x="120" y="215" text-anchor="middle" fill="#8b949e" font-size="18">UNKOMAN</text>
-    <text x="120" y="240" text-anchor="middle" fill="#8b949e" font-size="14">私は頭がおかしいです。
-スタレ中: 
-それは相当やばいね。
-どうにか思い出せない？
-あんたの名前は...
-私はunkoman！！</text>
+    <text x="120" y="240" text-anchor="middle" fill="#8b949e" font-size="14">すべてに飽き飽きしちゃうね
+super :akiakingface: Takkun
+</text>
 
     <!-- 年齢 -->
-    <text x="120" y="275" text-anchor="middle" fill="#58a6ff" font-size="16" font-weight="bold">🎂 14歳 9ヶ月 13日</text>
+    <text x="120" y="275" text-anchor="middle" fill="#58a6ff" font-size="16" font-weight="bold">🎂 14歳 9ヶ月 14日</text>
 
     <!-- Discordプレゼンス（外部SVG） -->
     <image href="https://lanyard.cnrad.dev/api/985151399207788615?animated=false&showDisplayName=true" x="20" y="300" width="510" height="160" />
